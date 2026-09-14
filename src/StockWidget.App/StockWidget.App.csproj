@@ -29,6 +29,7 @@
     <!-- 单文件自包含发布：RID 在 publish 命令时以 -r win-x64 传入，避免影响常规构建输出路径 -->
     <SelfContained Condition="'$(SelfContained)' == '' And '$(RuntimeIdentifier)' != ''">true</SelfContained>
     <PublishSingleFile Condition="'$(PublishSingleFile)' == '' And '$(RuntimeIdentifier)' != ''">true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(RuntimeIdentifier)' != ''">true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile Condition="'$(RuntimeIdentifier)' != ''">true</EnableCompressionInSingleFile>
   </PropertyGroup>
 
