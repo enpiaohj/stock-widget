@@ -22,23 +22,23 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
-        WriteCrashLog("step", new Exception("OnStartup 进入"));
         try
         {
             StartupCore(e);
         }
         catch (Exception ex)
         {
-            WriteCrashLog("OnStartup 异常", ex);
-            throw;
+            WriteCrashLog("OnStartup", ex);
+            MessageBox.Show($"启动失败：{ex.Message}", "股票小插件",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
         }
     }
 
     private void StartupCore(StartupEventArgs e)
     {
-        // 单实例互斥：二次启动时激活已有窗口后退出
+        // 单实例互斥：二次启动时提示后退出
         _singleInstanceMutex = new Mutex(true, @"Local\StockWidget.SingleInstance", out var isNew);
-        WriteCrashLog("step", new Exception($"互斥锁 isNew={isNew}"));
         if (!isNew)
         {
             MessageBox.Show("股票小插件已在运行。", "股票小插件",
@@ -64,7 +64,6 @@ public partial class App : Application
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();
         Services = services.BuildServiceProvider();
-        WriteCrashLog("step", new Exception("DI 装配完成"));
 
         // 旧版数据导入（首启动扫描 exe 目录）
         TryImportLegacy();

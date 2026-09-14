@@ -106,6 +106,12 @@ public partial class MainWindow : GlassWindow
         var cfg = _vm.Settings;
         Grid.Columns.Clear();
 
+        // 行间分隔线（旧版定义了配置但未实现，本版落实）
+        Grid.GridLinesVisibility = cfg.ShowDividers
+            ? DataGridGridLinesVisibility.Horizontal
+            : DataGridGridLinesVisibility.None;
+        Grid.HorizontalGridLinesBrush = (Brush)Application.Current.Resources["DividerBrush"];
+
         var headerStyle = CreateHeaderStyle();
 
         foreach (var def in FieldDefinitions.All)
@@ -505,6 +511,8 @@ public partial class MainWindow : GlassWindow
     }
 
     /// <summary>应用外观（启动与设置保存后调用）。</summary>
+    private bool _positionApplied;
+
     public void ApplyAppearance()
     {
         var cfg = _vm.Settings;
@@ -512,10 +520,47 @@ public partial class MainWindow : GlassWindow
         RowFontFamily = new FontFamily(cfg.FontFamily);
         RowFontSize = cfg.FontSize + 2;
         RowFontStyle = cfg.FontItalic ? FontStyles.Italic : FontStyles.Normal;
-        if (Left < -10000 || Top < -10000) // 首次
+
+        if (!_positionApplied)
         {
+            _positionApplied = true;
             Left = cfg.WindowX;
             Top = cfg.WindowY;
+            EnsureOnScreen();
+        }
+    }
+
+    /// <summary>窗口拖出屏幕（换显示器 / 分辨率变化）后自动拉回可见区域（增强：越界纠正）。</summary>
+    public void EnsureOnScreen()
+    {
+        const int margin = 40;
+        var virtualLeft = SystemParameters.VirtualScreenLeft;
+        var virtualTop = SystemParameters.VirtualScreenTop;
+        var virtualRight = virtualLeft + SystemParameters.VirtualScreenWidth;
+        var virtualBottom = virtualTop + SystemParameters.VirtualScreenHeight;
+
+        var w = ActualWidth > 0 ? ActualWidth : Width;
+        var h = ActualHeight > 0 ? ActualHeight : Height;
+        if (double.IsNaN(w)) w = 420;
+        if (double.IsNaN(h)) h = 360;
+
+        var offScreen = Left + w < virtualLeft + margin || Left > virtualRight - margin
+                        || Top + h < virtualTop + margin || Top > virtualBottom - margin;
+        if (!offScreen) return;
+
+        Left = Math.Max(virtualLeft + margin, (virtualRight - virtualLeft) / 2 - w / 2);
+        Top = Math.Max(virtualTop + margin, (virtualBottom - virtualTop) / 2 - h / 2);
+        _vm.SaveWindowPosition(Left, Top);
+    }
+
+    /// <summary>键盘：Delete 删除选中股票（固定股由仓储层拒绝）。</summary>
+    protected override void OnPreviewKeyDown(KeyEventArgs e)
+    {
+        base.OnPreviewKeyDown(e);
+        if (e.Key == Key.Delete && Grid.IsKeyboardFocusWithin && _vm.SelectedRow is not null)
+        {
+            _vm.RemoveSelected();
+            e.Handled = true;
         }
     }
 
