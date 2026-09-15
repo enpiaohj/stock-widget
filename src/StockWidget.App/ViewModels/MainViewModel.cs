@@ -438,7 +438,11 @@ public partial class MainViewModel : ObservableObject
             await _dispatcher.InvokeAsync(() =>
             {
                 foreach (var row in Rows)
-                    row.SparkValues = map.TryGetValue(row.Code, out var pts) ? pts : [];
+                {
+                    if (!map.TryGetValue(row.Code, out var pts)) continue;
+                    if (row.SparkValues.Count == pts.Count && row.SparkValues.SequenceEqual(pts)) continue;
+                    row.SparkValues = pts;
+                }
             });
         });
     }

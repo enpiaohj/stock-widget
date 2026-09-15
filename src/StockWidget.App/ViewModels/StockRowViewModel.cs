@@ -78,10 +78,21 @@ public partial class StockRowViewModel : ObservableObject
     /// <summary>
     /// 用新行情更新行。与旧值对比驱动：现价 ↑/↓ 箭头（1.2s 恢复）、行背景闪烁（600ms）。
     /// </summary>
+    /// <summary>关键显示字段是否与旧值完全一致（一致则跳过全列重算，降低刷新期 UI 负载）。</summary>
+    private bool SameAsPrevious(QuoteData a, QuoteData b) =>
+        a.Success == b.Success && a.Name == b.Name && a.Price == b.Price && a.ChangePct == b.ChangePct
+        && a.Volume == b.Volume && a.Amount == b.Amount && a.Turnover == b.Turnover
+        && a.High == b.High && a.Low == b.Low && a.Open == b.Open && a.PrevClose == b.PrevClose
+        && a.MarketCap == b.MarketCap && a.Amplitude == b.Amplitude;
+
     public void Update(QuoteData fresh, bool enableEffects = true)
     {
         var old = Current;
         Current = fresh;
+
+        // 数据未变化（非交易时段轮询/节假日后等）：跳过全列通知与动效，避免无谓重绘
+        if (SameAsPrevious(old, fresh))
+            return;
 
         if (enableEffects && fresh.Success && old.Success
             && fresh.Price is { } np && old.Price is { } op && np != op)
