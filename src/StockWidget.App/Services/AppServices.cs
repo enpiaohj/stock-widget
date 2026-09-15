@@ -122,8 +122,9 @@ public sealed class ThemeManager
         if (_originalBg is { } bg)
         {
             var c = bg.Color;
+            // 直接以档位换算最终不透明度（原色自带 97% alpha，若相乘则 10 档仍微微透出后面）
             app.Resources["BgBrush"] = new SolidColorBrush(
-                Color.FromArgb((byte)Math.Round(c.A * alpha), c.R, c.G, c.B));
+                Color.FromArgb((byte)Math.Round(255 * alpha), c.R, c.G, c.B));
         }
 
         if (_originalGradient is { } grad)
