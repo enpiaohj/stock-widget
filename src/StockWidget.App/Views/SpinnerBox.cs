@@ -31,11 +31,11 @@ public sealed class SpinnerBox : UserControl
         {
             TextAlignment = TextAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
-            Padding = new Thickness(2, 2, 16, 2),
+            Padding = new Thickness(2, 2, 18, 2),
         };
 
-        var up = new RepeatButton { Content = "▲", Width = 13, Height = 11, FontSize = 7, Delay = 400, Interval = 60, Focusable = false };
-        var down = new RepeatButton { Content = "▼", Width = 13, Height = 11, FontSize = 7, Delay = 400, Interval = 60, Focusable = false };
+        var up = new RepeatButton { Content = "▲", Width = 16, Height = 13, FontSize = 8, Delay = 400, Interval = 60, Focusable = false };
+        var down = new RepeatButton { Content = "▼", Width = 16, Height = 13, FontSize = 8, Delay = 400, Interval = 60, Focusable = false };
         up.Click += (_, _) => StepValue(+Step);
         down.Click += (_, _) => StepValue(-Step);
 
@@ -44,7 +44,7 @@ public sealed class SpinnerBox : UserControl
             Orientation = Orientation.Vertical,
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 1, 2, 1),
+            Margin = new Thickness(0, 0, 2, 0),
         };
         buttons.Children.Add(up);
         buttons.Children.Add(down);

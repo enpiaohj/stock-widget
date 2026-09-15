@@ -210,17 +210,8 @@ public partial class MainWindow : GlassWindow
         var maxW = SystemParameters.WorkArea.Width * 0.95;
         Width = Math.Clamp(width, MinWidth, maxW);
 
-        var rows = _vm.Rows.Count;
-        var groupCount = _vm.Settings.GroupByCategory && rows > 0
-            ? _vm.Rows.Select(r => r.CategoryName).Distinct().Count()
-            : 0;
-        var height = rows * Grid.RowHeight
-                     + groupCount * 26   // 分组头
-                     + 22                // 列表头
-                     + 22                // 量能栏
-                     + 8;                // 边距（收紧到约一行股票位置）
-        var maxH = SystemParameters.WorkArea.Height - 20;
-        Height = Math.Clamp(height, 240, maxH);
+        // 高度由 SizeToContent=Height 按内容精确决定（无空白）；仅限制屏幕高度上限，超出时表格内部滚动
+        MaxHeight = SystemParameters.WorkArea.Height - 10;
     }
 
     private DataGridTemplateColumn BuildValueColumn(FieldDefinitions.FieldDef def)
