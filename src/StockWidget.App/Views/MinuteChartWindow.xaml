@@ -14,20 +14,23 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal">
-            <TextBlock x:Name="NameText" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource FgBrush}" />
-            <TextBlock x:Name="CodeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center"
-                       Foreground="{DynamicResource SubFgBrush}" />
-            <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" Margin="14,0,0,0"
-                       VerticalAlignment="Center" />
-            <TextBlock x:Name="ChangeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center" />
-            <Border x:Name="ClosedBadge" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
-                    Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed">
-                <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
-            </Border>
-            <Button x:Name="CloseButton" Content="✕" Width="32" Margin="14,0,0,0"
-                    Click="Close_Click" VerticalAlignment="Center" />
-        </StackPanel>
+        <Grid Grid.Row="0">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock x:Name="NameText" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource FgBrush}" />
+                <TextBlock x:Name="CodeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SubFgBrush}" />
+                <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" Margin="14,0,0,0"
+                           VerticalAlignment="Center" />
+                <TextBlock x:Name="ChangeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center" />
+                <Border x:Name="ClosedBadge" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
+                        Padding="8,2" Margin="12,0,60,0" VerticalAlignment="Center" Visibility="Collapsed">
+                    <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
+                </Border>
+            </StackPanel>
+            <!-- 关闭按钮：锚定右缘，加宽避免文字切边 -->
+            <Button x:Name="CloseButton" Content="✕ 关闭" Width="80" HorizontalAlignment="Right"
+                    Margin="0,0,-6,0" Click="Close_Click" VerticalAlignment="Center" />
+        </Grid>
 
         <Border Grid.Row="1" Background="{DynamicResource CardBrush}" CornerRadius="10" Margin="0,12,0,0">
             <Grid Margin="10">
