@@ -452,7 +452,7 @@
         <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Padding" Value="0,6" />
+        <Setter Property="Padding" Value="0,6,8,6" />
         <Setter Property="HorizontalContentAlignment" Value="Right" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">

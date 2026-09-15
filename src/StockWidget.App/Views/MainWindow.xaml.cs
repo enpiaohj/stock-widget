@@ -237,6 +237,7 @@ public partial class MainWindow : GlassWindow
         textFactory.SetBinding(TextBlock.ForegroundProperty,
             new System.Windows.Data.Binding($"[{def.Key}].Tone") { Converter = ToneToBrushConverter.Instance });
         textFactory.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Right);
+        textFactory.SetValue(MarginProperty, new Thickness(0, 0, 8, 0)); // 列间视觉间距
 
         var template = new DataTemplate { DataType = typeof(StockRowViewModel) };
         template.VisualTree = textFactory;

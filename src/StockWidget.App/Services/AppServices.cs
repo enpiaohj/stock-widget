@@ -49,7 +49,7 @@ public sealed class ThemeManager
             _darkDictCache ??= new ResourceDictionary { Source = new Uri("Themes/Dark.xaml", UriKind.Relative) };
         else
             _lightDictCache ??= new ResourceDictionary { Source = new Uri("Themes/Light.xaml", UriKind.Relative) };
-        var dict = effective == "dark" ? _darkDictCache : _lightDictCache;
+        var dict = (effective == "dark" ? _darkDictCache : _lightDictCache)!;
 
         // 替换主题字典（Controls.xaml 保留在原位）
         var old = app.Resources.MergedDictionaries
