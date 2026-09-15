@@ -10,11 +10,7 @@
                    TextOptions.TextRenderingMode="ClearType"
                    UseLayoutRounding="True">
 
-    <Border CornerRadius="12" Margin="7" Background="Transparent">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="22" Direction="270" ShadowDepth="4"
-                              Opacity="0.5" Color="{DynamicResource CardShadowEffectBrush}" />
-        </Border.Effect>
+    <Border x:Name="CardShadowHost" CornerRadius="12" Margin="7" Background="Transparent">
         <Border CornerRadius="12" ClipToBounds="True">
             <Border Background="{DynamicResource CardGradientBrush}"
                     BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1"

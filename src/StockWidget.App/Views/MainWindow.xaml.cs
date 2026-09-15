@@ -6,6 +6,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using System.Windows.Threading;
 using StockWidget.App.Services;
 using StockWidget.App.ViewModels;
@@ -96,6 +97,7 @@ public partial class MainWindow : GlassWindow
         SourceInitialized += (_, _) => HookHotkey();
         Loaded += async (_, _) =>
         {
+            TryApplyWindowShadow();
             RebuildColumns();
             RebuildAmountText();
             BuildContextMenu();
@@ -103,6 +105,32 @@ public partial class MainWindow : GlassWindow
             ApplyAppearance();
             _vm.StartRefreshLoop();
         };
+    }
+
+    /// <summary>
+    /// 为主卡片附加柔和投影；DropShadowEffect 依赖 GPU 位图合成，在无 GPU / 远程会话等
+    /// 环境可能创建失败。此处容错：成功则附加，失败则静默回退（不阻断 UI 启动/渲染）。
+    /// </summary>
+    private void TryApplyWindowShadow()
+    {
+        try
+        {
+            var c = (Color)Application.Current.FindResource("CardShadowEffectBrush");
+            var shadow = new DropShadowEffect
+            {
+                BlurRadius = 22,
+                Direction = 270,
+                ShadowDepth = 4,
+                Opacity = 0.5,
+                Color = c,
+            };
+            CardShadowHost.Effect = shadow;
+        }
+        catch (Exception)
+        {
+            // 阴影不可用则忽略：保留无阴影的细边框外观，保证应用正常启动
+            CardShadowHost.Effect = null;
+        }
     }
 
     // ---------------------------

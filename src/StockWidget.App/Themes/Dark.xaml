@@ -43,7 +43,7 @@
         <GradientStop Color="#F8181820" Offset="1" />
     </LinearGradientBrush>
     <SolidColorBrush x:Key="CardShadowBrush" Color="#8A000000" />
-    <SolidColorBrush x:Key="CardShadowEffectBrush" Color="#FF000000" />
+    <Color x:Key="CardShadowEffectBrush">#FF000000</Color>
     <SolidColorBrush x:Key="HoverStrokeBrush" Color="#21FFFFFF" />
     <SolidColorBrush x:Key="LockBrush" Color="#A2A2AE" />
     <SolidColorBrush x:Key="BaselineBrush" Color="#59FFA640" />
