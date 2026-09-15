@@ -525,7 +525,7 @@ public partial class SettingsWindow : GlassWindow
         for (var i = 0; i < children.Count && i < defs.Count; i++)
         {
             var cb = (CheckBox)children[i].Children[0];
-            var widthBox = (TextBox)children[i].Children[1];
+            var widthBox = (SpinnerBox)children[i].Children[1]; // 列宽框已改为 SpinnerBox
             if (cb.IsChecked == true)
                 cfg.CustomFields.Add(defs[i].Key);
             if (int.TryParse(widthBox.Text, out var w))

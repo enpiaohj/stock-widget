@@ -29,9 +29,9 @@ public sealed class SpinnerBox : UserControl
     {
         _box = new TextBox
         {
-            TextAlignment = TextAlignment.Center,
+            TextAlignment = TextAlignment.Left,
             VerticalContentAlignment = VerticalAlignment.Center,
-            Padding = new Thickness(2, 2, 18, 2),
+            Padding = new Thickness(6, 2, 18, 2), // 左对齐避免数字被右侧按钮区截断
         };
 
         var up = new RepeatButton { Content = "▲", Width = 16, Height = 13, FontSize = 8, Delay = 400, Interval = 60, Focusable = false };
