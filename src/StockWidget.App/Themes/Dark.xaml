@@ -11,8 +11,8 @@
     <SolidColorBrush x:Key="SubFgBrush" Color="#9A9AA5" />
 
     <!-- 涨跌色（A 股习惯：红涨绿跌） -->
-    <SolidColorBrush x:Key="UpBrush" Color="#FF5C5C" />
-    <SolidColorBrush x:Key="DownBrush" Color="#3DD68C" />
+    <SolidColorBrush x:Key="UpBrush" Color="#FF0000" />
+    <SolidColorBrush x:Key="DownBrush" Color="#008000" />
     <SolidColorBrush x:Key="FlatBrush" Color="#E8E8E8" />
     <SolidColorBrush x:Key="FailBrush" Color="#8E8E96" />
 
@@ -24,8 +24,8 @@
     <SolidColorBrush x:Key="RowSelectedBrush" Color="#33689BE8" />
     <SolidColorBrush x:Key="HeaderLineBrush" Color="#33FFFFFF" />
     <SolidColorBrush x:Key="DividerBrush" Color="#22FFFFFF" />
-    <SolidColorBrush x:Key="FlashUpBrush" Color="#55FF5C5C" />
-    <SolidColorBrush x:Key="FlashDownBrush" Color="#553DD68C" />
+    <SolidColorBrush x:Key="FlashUpBrush" Color="#55FF0000" />
+    <SolidColorBrush x:Key="FlashDownBrush" Color="#55008000" />
 
     <!-- 控件 -->
     <SolidColorBrush x:Key="ControlBgBrush" Color="#2E2E33" />

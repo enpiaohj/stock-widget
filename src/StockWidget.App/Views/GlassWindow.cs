@@ -93,6 +93,9 @@ public abstract class GlassWindow : Window
         EndDragTracking();
         try
         {
+            // 表头等 ButtonBase 派生元素 MouseDown 时捕获了鼠标，捕获状态下 DragMove 无效，先释放
+            if (Mouse.Captured is not null)
+                Mouse.Capture(null);
             DragMove();
             OnWindowDragged();
         }

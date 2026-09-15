@@ -9,8 +9,8 @@
     <SolidColorBrush x:Key="FgBrush" Color="#1A1A1E" />
     <SolidColorBrush x:Key="SubFgBrush" Color="#6B6B74" />
 
-    <SolidColorBrush x:Key="UpBrush" Color="#E03131" />
-    <SolidColorBrush x:Key="DownBrush" Color="#0CA678" />
+    <SolidColorBrush x:Key="UpBrush" Color="#FF0000" />
+    <SolidColorBrush x:Key="DownBrush" Color="#008000" />
     <SolidColorBrush x:Key="FlatBrush" Color="#343A40" />
     <SolidColorBrush x:Key="FailBrush" Color="#ADB5BD" />
 
@@ -21,8 +21,8 @@
     <SolidColorBrush x:Key="RowSelectedBrush" Color="#262F6FDE" />
     <SolidColorBrush x:Key="HeaderLineBrush" Color="#33000000" />
     <SolidColorBrush x:Key="DividerBrush" Color="#22000000" />
-    <SolidColorBrush x:Key="FlashUpBrush" Color="#66FFC9C9" />
-    <SolidColorBrush x:Key="FlashDownBrush" Color="#66B8F2D9" />
+    <SolidColorBrush x:Key="FlashUpBrush" Color="#33FF0000" />
+    <SolidColorBrush x:Key="FlashDownBrush" Color="#33008000" />
 
     <SolidColorBrush x:Key="ControlBgBrush" Color="#FFFFFF" />
     <SolidColorBrush x:Key="ControlHoverBrush" Color="#F1F3F5" />
