@@ -232,8 +232,8 @@ public partial class SettingsWindow : GlassWindow
 
     private void PreviewOpacity(int percent)
     {
-        if (Application.Current.MainWindow is { } main)
-            main.Opacity = Math.Clamp(percent, 10, 100) / 100.0;
+        // 实时预览与保存后同一机制：仅背景 alpha 变化，文字恒清晰
+        ThemeManager.Instance.ApplyOpacity(percent);
     }
 
     // ---------------------------
