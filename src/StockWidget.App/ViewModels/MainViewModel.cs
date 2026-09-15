@@ -525,6 +525,10 @@ public partial class MainViewModel : ObservableObject
         if (!_watchlistRepo.Move(row.Code, target)) return false;
 
         _watchlist = _watchlistRepo.GetAll();
+        // 同步行 VM 持有的条目（视图 CustomSort 依据 Info.SortOrder），否则移动被旧顺序重排吞掉
+        var itemsByCode = _watchlist.ToDictionary(w => w.Code, StringComparer.OrdinalIgnoreCase);
+        foreach (var r in Rows)
+            if (itemsByCode.TryGetValue(r.Code, out var item)) r.UpdateItem(item);
         // 手动调整顺序 = 退出排序模式（否则排序立即覆盖移动结果，表现为"上移下移失效"）
         if (_cfg.SortField is not null)
         {
@@ -532,19 +536,8 @@ public partial class MainViewModel : ObservableObject
             _cfg.SortDescending = false;
             _settingsService.Save(_cfg);
         }
-        ReorderRows();
+        ApplyViewStructure();
         return true;
-    }
-
-    private void ReorderRows()
-    {
-        for (var i = 0; i < _watchlist.Count && i < Rows.Count; i++)
-        {
-            var row = Rows.FirstOrDefault(r => r.Code == _watchlist[i].Code);
-            if (row is null) continue;
-            var currentIdx = Rows.IndexOf(row);
-            if (currentIdx != i) Rows.Move(currentIdx, i);
-        }
     }
 
     // ---------------------------

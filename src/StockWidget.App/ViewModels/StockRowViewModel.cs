@@ -21,7 +21,7 @@ public partial class StockRowViewModel : ObservableObject
     private readonly DispatcherTimer _arrowTimer;
 
     /// <summary>自选股元信息。</summary>
-    public StockItem Info { get; }
+    public StockItem Info { get; private set; }
 
     /// <summary>当前行情（可能是失败占位）。</summary>
     public QuoteData Current { get; private set; }
@@ -49,6 +49,9 @@ public partial class StockRowViewModel : ObservableObject
             OnPropertyChanged(PriceIndex);
         };
     }
+
+    /// <summary>替换自选股条目（顺序调整后同步最新 SortOrder）。</summary>
+    public void UpdateItem(StockItem item) => Info = item;
 
     /// <summary>列绑定入口：StockRowViewModel 字符串索引器。</summary>
     public CellValue this[string fieldKey] => BuildCell(fieldKey);
