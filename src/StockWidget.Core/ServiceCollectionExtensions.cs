@@ -27,6 +27,7 @@ public static class ServiceCollectionExtensions
         // 交易日历：内置种子 + 兜底周末规则
         var builtInCal = TradingCalendarSeeder.GetBuiltIn();
         services.AddSingleton<ITradingCalendar>(new TradingCalendarService(builtInCal));
+        services.AddSingleton<IKlineArchiver, KlineArchiver>();
 
         // 首次运行：建库 / 迁移
         using (var db = new StockWidgetDbContext(new DbContextOptionsBuilder<StockWidgetDbContext>()
