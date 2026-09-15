@@ -4,6 +4,7 @@ using System.Windows.Media;
 using StockWidget.App.Views;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
+using StockWidget.Core.Models;
 
 namespace StockWidget.App.Services;
 
@@ -56,6 +57,46 @@ public sealed class ThemeManager
         }
 
         EffectiveThemeChanged?.Invoke(effective);
+    }
+
+    /// <summary>
+    /// 按强调色 key 派生并覆盖 Application.Resources 中强调相关刷（本地资源优先于主题字典同名 key）。
+    /// 默认橙时清空覆盖，回落到主题字典自身的强调色。
+    /// </summary>
+    public void ApplyAccent(string accentKey)
+    {
+        var app = Application.Current;
+        var pal = AccentPalette.FromKey(accentKey);
+
+        if (accentKey.Equals("orange", StringComparison.OrdinalIgnoreCase) || string.IsNullOrEmpty(accentKey))
+        {
+            // 默认橙：移除本地覆盖，回落到主题字典内置强调色
+            app.Resources.Remove("AccentBrush");
+            app.Resources.Remove("AccentSoftBrush");
+            app.Resources.Remove("HeaderLineBrush");
+            app.Resources.Remove("ControlBorderBrush");
+            app.Resources.Remove("GroupHeaderBrush");
+            app.Resources.Remove("MenuHoverBrush");
+            return;
+        }
+
+        // 非默认 → 用派生刷覆盖（注意 AccentBrush 需保持不透明主色，其余带合适 alpha）
+        app.Resources["AccentBrush"] = ToBrush(pal.Main);
+        app.Resources["AccentSoftBrush"] = ToBrush(pal.Soft);
+        app.Resources["HeaderLineBrush"] = ToBrush(pal.Strong);
+        app.Resources["GroupHeaderBrush"] = ToBrush(pal.Strong);
+        app.Resources["MenuHoverBrush"] = ToBrush(pal.Soft);
+        app.Resources["ControlBorderBrush"] = ToBrush(pal.Soft);
+    }
+
+    /// <summary>ARGB-as-long（0xAARRGGBB）→ 画笔；移位后掩去高 8 位以防符号扩展。</summary>
+    private static SolidColorBrush ToBrush(long argb)
+    {
+        var a = (byte)((argb >> 24) & 0xFF);
+        var r = (byte)((argb >> 16) & 0xFF);
+        var g = (byte)((argb >> 8) & 0xFF);
+        var b = (byte)(argb & 0xFF);
+        return new SolidColorBrush(Color.FromArgb(a, r, g, b));
     }
 
     public static bool IsSystemDark()

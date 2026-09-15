@@ -1,6 +1,7 @@
 using System.IO;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
 using Hardcodet.Wpf.TaskbarNotification;
 using Microsoft.Extensions.DependencyInjection;
 using StockWidget.App.Services;
@@ -81,6 +82,19 @@ public partial class App : Application
         var window = Services.GetRequiredService<MainWindow>();
         MainWindow = window;
         window.Show();
+    }
+
+    /// <summary>
+    /// 更新托盘图标右上角大盘涨跌色点：涨=红、跌=绿、平/无数据=灰。
+    /// 调用方（MainWindow）在行情刷新后依据 sh000001 涨跌幅传入。
+    /// </summary>
+    public void UpdateTrayMood(decimal? pct)
+    {
+        if (_tray is null) return;
+        var color = pct is null ? Colors.Gray
+            : pct > 0 ? Colors.Red
+            : Colors.Green;
+        _tray.IconSource = TrayIconFactory.Create(color, showOverlay: true);
     }
 
     private void TryImportLegacy()

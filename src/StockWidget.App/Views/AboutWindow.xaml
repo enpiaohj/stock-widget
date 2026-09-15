@@ -29,6 +29,8 @@
         </TextBlock>
         <TextBlock Margin="0,10,0,0" Foreground="{DynamicResource SubFgBrush}" FontSize="11"
                    HorizontalAlignment="Center" Text="感谢使用和支持！" />
+        <TextBlock Margin="0,4,0,0" Foreground="{DynamicResource SubFgBrush}" FontSize="11"
+                   HorizontalAlignment="Center" Text="github.com/enpiaohj/stock-widget" />
         <Button Content="关闭" Width="110" Margin="0,18,0,0" Style="{StaticResource PrimaryButtonStyle}"
                 HorizontalAlignment="Center" Click="Close_Click" />
     </StackPanel>

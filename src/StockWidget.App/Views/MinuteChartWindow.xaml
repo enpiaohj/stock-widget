@@ -37,6 +37,9 @@
                 <TextBlock x:Name="HighText" FontSize="10" Foreground="{DynamicResource SubFgBrush}"
                            HorizontalAlignment="Right" />
                 <views:Sparkline x:Name="Chart" Grid.Row="1" Margin="0,4" />
+                <Rectangle x:Name="BaselineBar" Grid.Row="1" Height="1" Fill="{DynamicResource BaselineBrush}"
+                           HorizontalAlignment="Stretch" VerticalAlignment="Center" Opacity="0.7"
+                           Margin="0,4,0,4" Visibility="Collapsed" IsHitTestVisible="False" />
                 <Grid Grid.Row="2">
                     <TextBlock x:Name="LowText" FontSize="10" Foreground="{DynamicResource SubFgBrush}" />
                     <TextBlock x:Name="TimeText" FontSize="10" Foreground="{DynamicResource SubFgBrush}"

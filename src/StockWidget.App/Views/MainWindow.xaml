@@ -10,8 +10,19 @@
                    TextOptions.TextRenderingMode="ClearType"
                    UseLayoutRounding="True">
 
-    <Border CornerRadius="10" Background="Transparent">
-        <Grid Margin="8,6,8,6" Background="Transparent">
+    <Border CornerRadius="12" Margin="7" Background="Transparent">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="22" Direction="270" ShadowDepth="4"
+                              Opacity="0.5" Color="{DynamicResource CardShadowEffectBrush}" />
+        </Border.Effect>
+        <Border CornerRadius="12" ClipToBounds="True">
+            <Border Background="{DynamicResource CardGradientBrush}"
+                    BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1"
+                    CornerRadius="12">
+                <Border CornerRadius="11" Background="{DynamicResource HoverStrokeBrush}"
+                        BorderThickness="1" BorderBrush="{DynamicResource HoverStrokeBrush}"
+                        Opacity="0.6" Margin="1">
+                    <Grid Margin="8,6,8,6" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
@@ -60,6 +71,12 @@
                            TextTrimming="CharacterEllipsis"
                            MouseLeave="AmountText_MouseLeave"
                            MouseMove="AmountText_MouseMove" />
+                <Border x:Name="LockBadge" Grid.Column="1" Visibility="Collapsed"
+                        Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
+                        Padding="8,2" VerticalAlignment="Center" Margin="0,0,8,0" ToolTip="窗口位置已锁定">
+                    <TextBlock Text="🔒 已锁定" FontSize="10" FontWeight="Bold"
+                               Foreground="{DynamicResource LockBrush}" />
+                </Border>
                 <Border x:Name="MarketClosedBadge" Grid.Column="1" Visibility="Collapsed"
                         Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
                         Padding="8,2" VerticalAlignment="Center" Margin="8,0,0,0">
@@ -68,5 +85,8 @@
                 </Border>
             </Grid>
         </Grid>
+                </Border>
+            </Border>
+        </Border>
     </Border>
 </views:GlassWindow>

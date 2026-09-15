@@ -9,7 +9,25 @@
         Background="{DynamicResource BgBrush}">
     <StackPanel Margin="16">
         <TextBlock x:Name="PromptText" Foreground="{DynamicResource FgBrush}" Margin="0,0,0,8" />
-        <TextBox x:Name="InputBox" KeyDown="InputBox_KeyDown" />
+        <TextBox x:Name="InputBox" KeyDown="InputBox_KeyDown" TextChanged="InputBox_TextChanged" />
+        <ListBox x:Name="MatchList" Visibility="Collapsed" MaxHeight="180"
+                 Background="{DynamicResource MenuBgBrush}" Foreground="{DynamicResource FgBrush}"
+                 BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1"
+                 Margin="0,4,0,0" Panel.ZIndex="10" MouseLeftButtonUp="MatchList_Click">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid Margin="0,2">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{Binding Name}" Foreground="{DynamicResource FgBrush}" />
+                        <TextBlock Grid.Column="1" Text="{Binding Market}" Margin="10,0,0,0"
+                                   FontSize="11" Foreground="{DynamicResource SubFgBrush}" />
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
         <TextBlock x:Name="HintText" Margin="0,6,0,0" FontSize="11" Foreground="{DynamicResource SubFgBrush}" />
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
             <Button Content="确定" Width="84" Style="{StaticResource PrimaryButtonStyle}" Click="Ok_Click" />

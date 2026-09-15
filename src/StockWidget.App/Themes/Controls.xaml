@@ -449,10 +449,22 @@
                                               VerticalAlignment="Center" />
                         </Border>
                         <Border Height="2" VerticalAlignment="Bottom" Background="{DynamicResource HeaderLineBrush}" />
+                        <Path x:Name="sortArrow" Data="M0,2 L4,6 L8,2" Stretch="Uniform" Width="8"
+                              Stroke="{DynamicResource AccentBrush}" StrokeThickness="1.5"
+                              Visibility="Collapsed" HorizontalAlignment="Right" Margin="0,0,5,0"
+                              VerticalAlignment="Center" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHoverBrush}" />
+                        </Trigger>
+                        <Trigger Property="SortDirection" Value="Ascending">
+                            <Setter TargetName="sortArrow" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="sortArrow" Property="Data" Value="M0,6 L4,2 L8,6" />
+                        </Trigger>
+                        <Trigger Property="SortDirection" Value="Descending">
+                            <Setter TargetName="sortArrow" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="sortArrow" Property="Data" Value="M0,2 L4,6 L8,2" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -505,8 +517,12 @@
                     <StackPanel>
                         <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
                                 Padding="8,2" Margin="0,2,0,3" HorizontalAlignment="Left">
+                            <StackPanel Orientation="Horizontal">
+                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource AccentBrush}"
+                                    VerticalAlignment="Stretch" Margin="0,0,7,0" />
                             <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Bold"
                                        Foreground="{DynamicResource AccentBrush}" />
+                        </StackPanel>
                         </Border>
                         <ItemsPresenter />
                     </StackPanel>

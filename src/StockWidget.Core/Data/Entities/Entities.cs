@@ -97,3 +97,16 @@ public static class EntityExtensions
         IsPinned = e.IsPinned,
     };
 }
+
+/// <summary>trading_calendar 表：交易日历（含调休上班的周末）。</summary>
+public sealed class TradingCalendarEntity
+{
+    /// <summary>日期，yyyy-MM-dd。（主键）</summary>
+    public string Date { get; set; } = "";
+
+    /// <summary>true=交易日（含调休上班的周末）；false=休市日（法定节假日）。</summary>
+    public bool IsTradingDay { get; set; }
+
+    /// <summary>备注（如"春节假期" / "调休上班"）。</summary>
+    public string Remark { get; set; } = "";
+}

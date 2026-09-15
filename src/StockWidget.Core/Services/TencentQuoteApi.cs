@@ -17,6 +17,9 @@ public interface ITencentQuoteApi
 
     /// <summary>当日分时（用于迷你走势图 / 分时弹窗）；接口失败返回 null。</summary>
     Task<MinuteLineData?> FetchMinuteLineAsync(string code, CancellationToken ct = default);
+
+    /// <summary>腾讯智能搜索（smartbox.gtimg.cn，GBK）：中文/拼音/代码关键字 → 候选；失败返回空列表。</summary>
+    Task<IReadOnlyList<StockSearchMatch>> SearchSuggestAsync(string keyword, CancellationToken ct = default);
 }
 
 /// <summary>分时数据：HHmm 时间点 + 价格序列。</summary>
@@ -34,6 +37,7 @@ public sealed class TencentQuoteApi : ITencentQuoteApi, IDisposable
 {
     private const string QuoteUrl = "https://qt.gtimg.cn/q=";
     private const string MinuteUrl = "https://web.ifzq.gtimg.cn/appstock/app/minute/query?code=";
+    private const string SmartboxUrl = "https://smartbox.gtimg.cn/s3/?v=2&q=";
 
     private readonly HttpClient _http;
 
@@ -116,6 +120,28 @@ public sealed class TencentQuoteApi : ITencentQuoteApi, IDisposable
         catch (Exception)
         {
             return null;
+        }
+    }
+
+    public async Task<IReadOnlyList<StockSearchMatch>> SearchSuggestAsync(string keyword, CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(keyword)) return [];
+            var url = SmartboxUrl + Uri.EscapeDataString(keyword) + "&t=all";
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(4));
+            using var resp = await _http.GetAsync(url, cts.Token).ConfigureAwait(false);
+            resp.EnsureSuccessStatusCode();
+
+            var bytes = await resp.Content.ReadAsByteArrayAsync(cts.Token).ConfigureAwait(false);
+            var text = Encoding.GetEncoding("GBK").GetString(bytes);
+            return SmartboxResponseParser.Parse(text);
+        }
+        catch (Exception)
+        {
+            // 搜索失败静默：UI 回退为直接代码输入
+            return [];
         }
     }
 
