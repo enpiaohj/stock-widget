@@ -30,12 +30,16 @@ public partial class MainViewModel : ObservableObject
     private readonly ITencentQuoteApi _api;
     private readonly IAlertRepository _alertRepo;
     private readonly IQuoteSnapshotRepository _snapshotRepo;
+    private readonly ITradingCalendar _tradingCalendar;
 
     private readonly DispatcherTimer _refreshTimer;
     private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;
     private bool _refreshing;
     private AppSettings _cfg = new();
     private List<StockItem> _watchlist = [];
+
+    /// <summary>休市探测间隔（毫秒）：市场关闭时每个 tick 拉长到此，减少无效请求。</summary>
+    private static readonly TimeSpan MarketProbeInterval = TimeSpan.FromSeconds(600);
 
     /// <summary>分组显示顺序（指数 / ETF / 个股 / 港股 / 美股）。</summary>
     private static readonly string[] CategoryOrder = ["指数", "ETF", "个股", "港股", "美股"];
@@ -107,7 +111,8 @@ public partial class MainViewModel : ObservableObject
         IPriceRefreshService refreshService,
         ITencentQuoteApi api,
         IAlertRepository alertRepo,
-        IQuoteSnapshotRepository snapshotRepo)
+        IQuoteSnapshotRepository snapshotRepo,
+        ITradingCalendar tradingCalendar)
     {
         _settingsService = settingsService;
         _watchlistRepo = watchlistRepo;
@@ -115,6 +120,7 @@ public partial class MainViewModel : ObservableObject
         _api = api;
         _alertRepo = alertRepo;
         _snapshotRepo = snapshotRepo;
+        _tradingCalendar = tradingCalendar;
 
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(5000) };
         _refreshTimer.Tick += async (_, _) => await RefreshAsync();
@@ -260,6 +266,18 @@ public partial class MainViewModel : ObservableObject
         _refreshing = true;
         try
         {
+            // 休市（节假日/周末/非交易日）：跳过抓取，临时拉长到探测间隔，恢复后切回配置间隔
+            if (IsMarketClosed(DateTime.Now))
+            {
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    MarketClosed = true;
+                    UpdateStatusText();
+                    if (_refreshTimer.Interval != MarketProbeInterval)
+                        _refreshTimer.Interval = MarketProbeInterval;
+                });
+                return;
+            }
             var prev = Rows.Select(r => r.Current).ToList();
             var result = await Task.Run(async () => await _refreshService
                 .RefreshAsync(_watchlist, prev)
@@ -276,6 +294,10 @@ public partial class MainViewModel : ObservableObject
                 }
 
                 MarketClosed = IsMarketClosed(DateTime.Now);
+                // 进入交易日：恢复配置的刷新间隔
+                var cfgInterval = TimeSpan.FromMilliseconds(_cfg.RefreshIntervalMs);
+                if (_refreshTimer.Interval != cfgInterval)
+                    _refreshTimer.Interval = cfgInterval;
                 UpdateAmountBar(result);
                 // 大盘涨跌 → 托盘色点（仅在自选含上证指数时更新；失败保留旧值不闪烁）
                 var mood = result.Quotes.FirstOrDefault(q =>
@@ -367,9 +389,8 @@ public partial class MainViewModel : ObservableObject
 
     private void UpdateStatusText() => StatusText = BuildStatusSuffix();
 
-    /// <summary>休市判断（周末；节假日无数据源，不判断）。</summary>
-    public static bool IsMarketClosed(DateTime now) =>
-        now.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    /// <summary>休市判断（优先交易日历，失败兜底周末）。</summary>
+    private bool IsMarketClosed(DateTime now) => !_tradingCalendar.IsTradingDay(now);
 
     // ---------------------------
     // 迷你走势（当日快照）

@@ -22,11 +22,22 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITencentQuoteApi, TencentQuoteApi>();
         services.AddSingleton<IPriceRefreshService, PriceRefreshService>();
 
+        // 交易日历：内置种子 + 兜底周末规则
+        var builtInCal = TradingCalendarSeeder.GetBuiltIn();
+        services.AddSingleton<ITradingCalendar>(new TradingCalendarService(builtInCal));
+
         // 首次运行：建库 / 迁移
         using (var db = new StockWidgetDbContext(new DbContextOptionsBuilder<StockWidgetDbContext>()
                    .UseSqlite($"Data Source={path}").Options))
         {
             db.Database.Migrate();
+
+            // 空库时写入内置交易日历种子
+            using (var seed = new StockWidgetDbContext(new DbContextOptionsBuilder<StockWidgetDbContext>()
+                       .UseSqlite($"Data Source={path}").Options))
+            {
+                TradingCalendarSeeder.SeedIfEmpty(seed);
+            }
         }
 
         return services;
