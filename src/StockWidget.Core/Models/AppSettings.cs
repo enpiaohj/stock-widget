@@ -38,8 +38,11 @@ public sealed class AppSettings
     public bool ShowUpdateWeekNumber { get; set; } = false;
 
     // ---------- 字段 ----------
-    /// <summary>额外显示的字段 key 列表（必选字段 name/price/change/amplitude 恒显示）。</summary>
-    public List<string> CustomFields { get; set; } = ["high", "low", "open", "prev_close"];
+    /// <summary>
+    /// 额外显示的字段 key 列表（必选字段 name/price/change/amplitude 恒显示）。
+    /// 默认对齐旧版常用布局：换手率 / 最高 / 最低 / 开盘 / 昨收 / 振幅。
+    /// </summary>
+    public List<string> CustomFields { get; set; } = ["turnover", "high", "low", "open", "prev_close", "amplitude"];
 
     /// <summary>各字段列宽（字符单位），key 为字段 key。</summary>
     public Dictionary<string, int> FieldWidths { get; set; } = [];

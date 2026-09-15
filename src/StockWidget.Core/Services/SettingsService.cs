@@ -75,6 +75,12 @@ public sealed class SettingsService(IDbContextFactory<StockWidgetDbContext> dbFa
             // 兼容字段宽度：确保必选字段存在
             foreach (var (disp, key, w, _) in FieldDefinitions.All)
                 loaded.FieldWidths.TryAdd(key, w);
+            // 兜底：CustomFields 为空（误操作/旧版导入）时回退默认，避免只显示必选列
+            if (loaded.CustomFields.Count == 0)
+                loaded.CustomFields = FieldDefinitions.All
+                    .Where(f => !f.Required)
+                    .Select(f => f.Key)
+                    .ToList();
             return loaded;
         }
         catch (System.Text.Json.JsonException)
