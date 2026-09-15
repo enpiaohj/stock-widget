@@ -20,7 +20,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Product>股票小插件</Product>
     <AssemblyTitle>股票小插件 (StockWidget)</AssemblyTitle>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
