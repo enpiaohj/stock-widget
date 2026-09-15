@@ -58,8 +58,8 @@ public partial class SettingsWindow : GlassWindow
     {
         // ---- 显示设置 ----
         Select(ThemeBox, _working.Theme);
-        OpacitySlider.Value = _working.OpacityPercent;
-        OpacityBox.Text = _working.OpacityPercent.ToString(CultureInfo.InvariantCulture);
+        OpacitySlider.Value = _working.OpacityPercent / 10;
+        OpacityBox.Text = (_working.OpacityPercent / 10).ToString(CultureInfo.InvariantCulture);
 
         var fonts = System.Windows.Media.Fonts.SystemFontFamilies
             .OrderBy(f => f.ToString());
@@ -216,17 +216,17 @@ public partial class SettingsWindow : GlassWindow
         if (OpacityBox is null) return;
         var v = (int)Math.Round(e.NewValue);
         OpacityBox.Text = v.ToString(CultureInfo.InvariantCulture);
-        PreviewOpacity(v);
+        PreviewOpacity(v * 10);
     }
 
     private void OpacityBox_ValueChanged(object sender, EventArgs e)
     {
         if (OpacitySlider is null) return;
-        if (int.TryParse(OpacityBox.Text, out var v) && v is >= 10 and <= 100)
+        if (int.TryParse(OpacityBox.Text, out var v) && v is >= 1 and <= 10)
         {
             if (Math.Abs(OpacitySlider.Value - v) > 0.5)
                 OpacitySlider.Value = v;
-            PreviewOpacity(v);
+            PreviewOpacity(v * 10);
         }
     }
 
@@ -489,7 +489,7 @@ public partial class SettingsWindow : GlassWindow
             error = "刷新间隔需为 1-120 秒。";
             return false;
         }
-        if (!int.TryParse(OpacityBox.Text, out var opacity) || opacity is < 10 or > 100)
+        if (!int.TryParse(OpacityBox.Text, out var opacity) || opacity is < 1 or > 10)
         {
             error = "透明度需为 10-100。";
             return false;
@@ -503,7 +503,7 @@ public partial class SettingsWindow : GlassWindow
         cfg.FontSize = fontSize;
         cfg.FontFamily = FontBox.SelectedItem as string ?? cfg.FontFamily;
         cfg.FontItalic = ItalicCheck.IsChecked == true;
-        cfg.OpacityPercent = opacity;
+        cfg.OpacityPercent = opacity * 10; // 档位(1-10) → 内部百分比(10-100)
         cfg.RefreshIntervalMs = intervalSec * 1000;
         cfg.ShowTotalAmount = ShowAmountCheck.IsChecked == true;
         cfg.ShowDividers = ShowDividersCheck.IsChecked == true;

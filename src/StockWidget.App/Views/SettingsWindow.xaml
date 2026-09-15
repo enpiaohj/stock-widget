@@ -46,10 +46,10 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="窗口透明度" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
-                                    <Slider x:Name="OpacitySlider" Grid.Column="1" Minimum="10" Maximum="100"
+                                    <Slider x:Name="OpacitySlider" Grid.Column="1" Minimum="1" Maximum="10"
                                             ValueChanged="Opacity_ValueChanged" VerticalAlignment="Center" />
                                     <views:SpinnerBox x:Name="OpacityBox" Grid.Column="2" Width="56" HorizontalAlignment="Left"
-                                              Margin="10,0,0,0" Min="10" Max="100" ValueChanged="OpacityBox_ValueChanged" />
+                                              Margin="10,0,0,0" Min="1" Max="10" ValueChanged="OpacityBox_ValueChanged" />
                                 </Grid>
                                 <Grid Margin="0,4">
                                     <Grid.ColumnDefinitions>
