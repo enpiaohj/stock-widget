@@ -25,6 +25,8 @@
                     Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed">
                 <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
             </Border>
+            <Button x:Name="CloseButton" Content="✕ 关闭" Width="64" Margin="14,0,0,0"
+                    Click="Close_Click" VerticalAlignment="Center" />
         </StackPanel>
 
         <Border Grid.Row="1" Background="{DynamicResource CardBrush}" CornerRadius="10" Margin="0,12,0,0">

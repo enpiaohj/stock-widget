@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media;
 using StockWidget.App.ViewModels;
 using StockWidget.Core.Models;
@@ -9,7 +10,7 @@ namespace StockWidget.App.Views;
 public partial class MinuteChartWindow : GlassWindow
 {
     private readonly MainViewModel _vm;
-    private readonly StockRowViewModel _row;
+    private StockRowViewModel _row;
 
     public MinuteChartWindow(MainViewModel vm, StockRowViewModel row)
     {
@@ -17,6 +18,26 @@ public partial class MinuteChartWindow : GlassWindow
         _row = row;
         InitializeComponent();
 
+        LoadHeader(row);
+
+        Loaded += async (_, _) => await LoadAsync();
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.Escape) Close(); // Esc 关闭
+        };
+    }
+
+    /// <summary>复用已打开的窗口切换到另一只股票（避免越开越多）。</summary>
+    public void ShowFor(StockRowViewModel row)
+    {
+        _row = row;
+        LoadHeader(row);
+        _ = LoadAsync();
+        Activate();
+    }
+
+    private void LoadHeader(StockRowViewModel row)
+    {
         var quote = row.Current;
         NameText.Text = quote.Success ? quote.Name : row.Info.Name;
         CodeText.Text = $"{row.Code}（{row.CodeDisplay}）";
@@ -35,9 +56,9 @@ public partial class MinuteChartWindow : GlassWindow
             PriceText.Foreground = brush;
             ChangeText.Foreground = brush;
         }
-
-        Loaded += async (_, _) => await LoadAsync();
     }
+
+    private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private async Task LoadAsync()
     {

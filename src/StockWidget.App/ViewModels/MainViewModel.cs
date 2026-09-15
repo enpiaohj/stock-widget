@@ -161,9 +161,11 @@ public partial class MainViewModel : ObservableObject
     private void ApplySettingsInternal(bool save)
     {
         _refreshTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(1000, _cfg.RefreshIntervalMs));
-        Opacity = Math.Clamp(_cfg.OpacityPercent, 10, 100) / 100.0;
         ThemeManager.Instance.Apply(_cfg.Theme);
         ThemeManager.Instance.ApplyAccent(_cfg.AccentColor);
+        // 透明度：仅背景 alpha 透桌面，文字/数据保持不透明（整窗 Opacity 会把文字一起变透明）
+        // 必须在主题字典加载之后调用（基于新主题的原始刷克隆）
+        ThemeManager.Instance.ApplyOpacity(_cfg.OpacityPercent);
 
         try
         {
@@ -194,21 +196,25 @@ public partial class MainViewModel : ObservableObject
 
         RowsView.SortDescriptions.Clear();
         if (RowsView is ListCollectionView list)
-            list.CustomSort = new RowComparer(_cfg.SortField, _cfg.SortDescending);
+            list.CustomSort = new RowComparer(_cfg.SortField, _cfg.SortDescending, _cfg.GroupByCategory);
         else
             RowsView.Refresh();
     }
 
     /// <summary>行排序比较器：分组优先，再按排序字段或自选顺序。</summary>
-    private sealed class RowComparer(string? sortField, bool descending) : IComparer
+    private sealed class RowComparer(string? sortField, bool descending, bool groupByCategory) : IComparer
     {
         public int Compare(object? x, object? y)
         {
             if (x is not StockRowViewModel a || y is not StockRowViewModel b) return 0;
 
-            var groupA = CategoryOrder.IndexOf(a.CategoryName);
-            var groupB = CategoryOrder.IndexOf(b.CategoryName);
-            if (groupA != groupB) return groupA.CompareTo(groupB);
+            // 分类聚集仅在开启自动分组时生效；关闭后完全按自选手动顺序
+            if (groupByCategory)
+            {
+                var groupA = CategoryOrder.IndexOf(a.CategoryName);
+                var groupB = CategoryOrder.IndexOf(b.CategoryName);
+                if (groupA != groupB) return groupA.CompareTo(groupB);
+            }
 
             if (sortField is null)
                 return a.Info.SortOrder.CompareTo(b.Info.SortOrder);

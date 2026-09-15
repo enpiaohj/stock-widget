@@ -17,6 +17,9 @@ public sealed class ThemeManager
 
     public event Action<string>? EffectiveThemeChanged; // "dark" / "light"
 
+    private SolidColorBrush? _originalBg;
+    private LinearGradientBrush? _originalGradient;
+
     public string CurrentEffectiveTheme { get; private set; } = "dark";
 
     /// <summary>应用主题（settings.Theme：dark / light / system）。</summary>
@@ -34,11 +37,19 @@ public sealed class ThemeManager
         ApplyDictionary(effective);
     }
 
+    private ResourceDictionary? _darkDictCache;
+    private ResourceDictionary? _lightDictCache;
+
     private void ApplyDictionary(string effective)
     {
         var app = Application.Current;
-        var uri = new Uri($"Themes/{(effective == "dark" ? "Dark" : "Light")}.xaml", UriKind.Relative);
-        var dict = new ResourceDictionary { Source = uri };
+
+        // 主题字典缓存：首次加载后复用实例，切换主题不再重新解析 BAML（提速）
+        if (effective == "dark")
+            _darkDictCache ??= new ResourceDictionary { Source = new Uri("Themes/Dark.xaml", UriKind.Relative) };
+        else
+            _lightDictCache ??= new ResourceDictionary { Source = new Uri("Themes/Light.xaml", UriKind.Relative) };
+        var dict = effective == "dark" ? _darkDictCache : _lightDictCache;
 
         // 替换主题字典（Controls.xaml 保留在原位）
         var old = app.Resources.MergedDictionaries
@@ -47,6 +58,10 @@ public sealed class ThemeManager
         if (old is not null)
             app.Resources.MergedDictionaries.Remove(old);
         app.Resources.MergedDictionaries.Add(dict);
+
+        // 缓存主题原始刷（透明度调整需从原始色克隆，避免多次应用累积变全透）
+        _originalBg = dict["BgBrush"] as SolidColorBrush;
+        _originalGradient = dict["CardGradientBrush"] as LinearGradientBrush;
 
         CurrentEffectiveTheme = effective;
 
@@ -97,6 +112,37 @@ public sealed class ThemeManager
         var g = (byte)((argb >> 8) & 0xFF);
         var b = (byte)(argb & 0xFF);
         return new SolidColorBrush(Color.FromArgb(a, r, g, b));
+    }
+
+    /// <summary>
+    /// 按不透明度百分比（10–100）调整窗口底色 alpha：仅背景透桌面，文字/数据保持不透明清晰可读。
+    /// 100 = 完全不透明；数值越小越透。从主题原始刷克隆，多次应用不累积。
+    /// </summary>
+    public void ApplyOpacity(int percent)
+    {
+        var app = Application.Current;
+        if (_originalBg is null) return; // 主题字典尚未加载
+
+        var alpha = Math.Clamp(percent, 10, 100) / 100.0;
+
+        if (_originalBg is { } bg)
+        {
+            var c = bg.Color;
+            app.Resources["BgBrush"] = new SolidColorBrush(
+                Color.FromArgb((byte)Math.Round(c.A * alpha), c.R, c.G, c.B));
+        }
+
+        if (_originalGradient is { } grad)
+        {
+            var clone = grad.Clone();
+            foreach (var stop in clone.GradientStops)
+            {
+                var a = (byte)Math.Clamp(Math.Round(stop.Color.A * alpha), 0, 255);
+                stop.Color = Color.FromArgb(a, stop.Color.R, stop.Color.G, stop.Color.B);
+            }
+            clone.Freeze();
+            app.Resources["CardGradientBrush"] = clone;
+        }
     }
 
     public static bool IsSystemDark()

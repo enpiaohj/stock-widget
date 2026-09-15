@@ -29,6 +29,7 @@ public partial class MainWindow : GlassWindow
     private bool _animatingVisibility;
     private const double FadeDurationMs = 120;
     private HwndSource? _hwndSource;
+    private MinuteChartWindow? _minuteWindow;
 
     // 供 XAML 绑定的行字体（避免与 Window 自带属性重名）
     public static readonly DependencyProperty RowFontFamilyProperty = DependencyProperty.Register(
@@ -81,7 +82,17 @@ public partial class MainWindow : GlassWindow
         _vm.QuitRequested += QuitApp;
         _vm.HotkeyChanged += RegisterHotkey;
         _vm.VisibilityToggleRequested += ToggleVisibility;
-        _vm.MinuteRequested += row => new MinuteChartWindow(_vm, row) { Owner = this }.Show();
+        // 分时窗口单实例：已打开则复用并切换股票，不再越开越多
+        _vm.MinuteRequested += row =>
+        {
+            if (_minuteWindow is { IsLoaded: true } w)
+            {
+                w.ShowFor(row);
+                return;
+            }
+            _minuteWindow = new MinuteChartWindow(_vm, row) { Owner = this };
+            _minuteWindow.Show();
+        };
         _vm.AlertsTriggered += alerts =>
             ToastService.ShowAlerts(alerts);
 
@@ -205,9 +216,9 @@ public partial class MainWindow : GlassWindow
             : 0;
         var height = rows * Grid.RowHeight
                      + groupCount * 26   // 分组头
-                     + 26                // 列表头
-                     + 28                // 量能栏
-                     + 24;               // 卡片边距（收紧，避免底部大片空白）
+                     + 24                // 列表头
+                     + 24                // 量能栏
+                     + 18;               // 卡片边距
         var maxH = SystemParameters.WorkArea.Height - 20;
         Height = Math.Clamp(height, 240, maxH);
     }
@@ -618,7 +629,7 @@ public partial class MainWindow : GlassWindow
     public void ApplyAppearance()
     {
         var cfg = _vm.Settings;
-        Opacity = Math.Clamp(cfg.OpacityPercent, 10, 100) / 100.0;
+        Opacity = 1.0; // 整窗不透明；背景 alpha 由 ThemeManager.ApplyOpacity 控制
         RowFontFamily = new FontFamily(cfg.FontFamily);
         RowFontSize = cfg.FontSize + 2;
         RowFontStyle = cfg.FontItalic ? FontStyles.Italic : FontStyles.Normal;
