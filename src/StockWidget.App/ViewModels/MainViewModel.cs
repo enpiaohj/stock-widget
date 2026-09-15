@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StockWidget.App.Services;
+using StockWidget.Core.Data.Entities;
 using StockWidget.Core.Models;
 using StockWidget.Core.Services;
 
@@ -32,6 +33,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IQuoteSnapshotRepository _snapshotRepo;
     private readonly ITradingCalendar _tradingCalendar;
     private readonly IKlineArchiver _klineArchiver;
+    private readonly IDailyKlineRepository _klineRepo;
 
     private readonly DispatcherTimer _refreshTimer;
     private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;
@@ -114,7 +116,8 @@ public partial class MainViewModel : ObservableObject
         IAlertRepository alertRepo,
         IQuoteSnapshotRepository snapshotRepo,
         ITradingCalendar tradingCalendar,
-        IKlineArchiver klineArchiver)
+        IKlineArchiver klineArchiver,
+        IDailyKlineRepository klineRepo)
     {
         _settingsService = settingsService;
         _watchlistRepo = watchlistRepo;
@@ -124,6 +127,7 @@ public partial class MainViewModel : ObservableObject
         _snapshotRepo = snapshotRepo;
         _tradingCalendar = tradingCalendar;
         _klineArchiver = klineArchiver;
+        _klineRepo = klineRepo;
 
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(5000) };
         _refreshTimer.Tick += async (_, _) => await RefreshAsync();
@@ -457,6 +461,9 @@ public partial class MainViewModel : ObservableObject
 
     /// <summary>取某只股票的分时数据（分时弹窗）。</summary>
     public Task<MinuteLineData?> GetMinuteLineAsync(string code) => _api.FetchMinuteLineAsync(code);
+
+    /// <summary>取某代码最近 N 根日K（供 K 线页，调用方需在后台线程调用）。</summary>
+    public List<DailyKlineEntity> GetKlines(string code, int days) => _klineRepo.GetByCode(code, days);
 
     /// <summary>取某只股票当日快照价格序列（分时数据不可用时的回退）。</summary>
     public List<decimal> GetTodaySnapshots(string code)
