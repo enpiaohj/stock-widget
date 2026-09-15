@@ -17,6 +17,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IWatchlistRepository, WatchlistRepository>();
         services.AddSingleton<IAmountHistoryRepository, AmountHistoryRepository>();
         services.AddSingleton<IQuoteSnapshotRepository, QuoteSnapshotRepository>();
+        services.AddSingleton<IDailyKlineRepository, DailyKlineRepository>();
         services.AddSingleton<IAlertRepository, AlertRepository>();
         services.AddSingleton<ILegacyImporter, LegacyImporter>();
         services.AddSingleton<IBackupService, BackupService>();
