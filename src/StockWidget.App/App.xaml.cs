@@ -192,6 +192,9 @@ public partial class App : Application
                 Directory.CreateDirectory(dir);
                 _logFile = Path.Combine(dir, "startup.log");
             }
+            // 防护：布局等场景可能循环抛异常，超 5MB 轮转重建，避免刷爆磁盘
+            if (File.Exists(_logFile) && new FileInfo(_logFile).Length > 5 * 1024 * 1024)
+                File.Delete(_logFile);
             File.AppendAllText(_logFile,
                 $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{tag}] {ex?.GetType().Name}: {ex?.Message}\n{ex?.StackTrace}\n---\n");
             System.Diagnostics.Debug.WriteLine($"[{tag}] {ex}");
