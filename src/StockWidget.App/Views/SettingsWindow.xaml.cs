@@ -45,7 +45,10 @@ public partial class SettingsWindow : GlassWindow
         Closing += (_, _) =>
         {
             if (!_saved)
+            {
                 ThemeManager.Instance.Apply(_original.Theme);
+                ThemeManager.Instance.ApplyAccent(_original.AccentColor);
+            }
         };
 
         Loaded += (_, _) => LoadFromSettings();

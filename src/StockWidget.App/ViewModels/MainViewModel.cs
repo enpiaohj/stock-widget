@@ -319,6 +319,10 @@ public partial class MainViewModel : ObservableObject
             {
                 MarketClosed = IsMarketClosed(DateTime.Now);
                 UpdateStatusText();
+                // 与成功分支一致：进入交易日即恢复配置刷新间隔（即便本轮抓取失败）
+                var cfgInt = TimeSpan.FromMilliseconds(_cfg.RefreshIntervalMs);
+                if (_refreshTimer.Interval != cfgInt)
+                    _refreshTimer.Interval = cfgInt;
             });
         }
         finally
