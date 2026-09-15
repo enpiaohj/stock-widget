@@ -162,6 +162,7 @@ public partial class MainViewModel : ObservableObject
         _refreshTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(1000, _cfg.RefreshIntervalMs));
         Opacity = Math.Clamp(_cfg.OpacityPercent, 10, 100) / 100.0;
         ThemeManager.Instance.Apply(_cfg.Theme);
+        ThemeManager.Instance.ApplyAccent(_cfg.AccentColor);
 
         try
         {

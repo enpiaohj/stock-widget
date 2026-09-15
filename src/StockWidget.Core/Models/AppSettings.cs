@@ -67,6 +67,10 @@ public sealed class AppSettings
     // ---------- 增强：迷你走势图 ----------
     public bool ShowSparkline { get; set; } = true;
 
+    // ---------- 增强：UI 强调色 ----------
+    /// <summary>强调色 key（见 AccentPalette.All），空 = 默认橙。</summary>
+    public string AccentColor { get; set; } = "";
+
     /// <summary>克隆（设置对话框取消恢复用）。</summary>
     public AppSettings Clone() => (AppSettings)MemberwiseClone();
 }
