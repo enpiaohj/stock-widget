@@ -269,17 +269,9 @@ public partial class MainWindow : GlassWindow
         // 必须基于主题隐式样式：否则 Foreground（AccentBrush 橙色）等丢失，
         // 表头文字回退默认黑色，深色主题下不可见
         var style = new Style(typeof(DataGridColumnHeader), (Style)FindResource(typeof(DataGridColumnHeader)));
-        style.Setters.Add(new EventSetter(DataGridColumnHeader.ClickEvent,
-            new RoutedEventHandler(Header_Click)));
         style.Setters.Add(new EventSetter(DataGridColumnHeader.MouseDoubleClickEvent,
             new MouseButtonEventHandler(Header_DoubleClick)));
         return style;
-    }
-
-    private void Header_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is DataGridColumnHeader { Column.SortMemberPath: { } key })
-            _vm.SetSort(key);
     }
 
     private void Header_DoubleClick(object sender, MouseButtonEventArgs e)
