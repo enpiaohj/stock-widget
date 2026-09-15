@@ -123,8 +123,8 @@ public sealed class ThemeManager
         var app = Application.Current;
         if (_originalBg is null) return; // 主题字典尚未加载
 
-        // 保底可读：最透时背景仍保留 45% 底色，避免透出亮色桌面（白网页/IDE）时文字对比度不足
-        var alpha = 0.45 + 0.55 * (Math.Clamp(percent, 10, 100) / 100.0);
+        // 保底可读：最透时背景仍保留 60% 底色——半透混合后红涨绿跌文字在深/浅主题下都保持对比度
+        var alpha = 0.60 + 0.40 * (Math.Clamp(percent, 10, 100) / 100.0);
 
         if (_originalBg is { } bg)
         {
