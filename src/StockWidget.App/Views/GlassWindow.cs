@@ -36,11 +36,49 @@ public abstract class GlassWindow : Window
         PreviewMouseLeftButtonDown += OnPreviewDragDown;
     }
 
-    /// <summary>整窗背景拖拽：在非交互控件的空白区域按住左键移动窗口。</summary>
+    // 位移判别拖拽状态：按下点与可拖标记
+    private Point? _dragStartPoint;
+    private bool _dragStartAllowed;
+
+    /// <summary>
+    /// 整窗拖拽（对齐旧版语义）：按下任意非交互区域（含表格行）记录起点；
+    /// 位移超过系统阈值才 DragMove —— 轻点仍触发行选择 / tooltip / 双击，拖动两不冲突。
+    /// </summary>
     private void OnPreviewDragDown(object sender, MouseButtonEventArgs e)
     {
-        if (e.Handled || e.ButtonState != MouseButtonState.Pressed) return;
-        if (!CanDragWindow(e.OriginalSource)) return;
+        if (e.Handled || e.ButtonState != MouseButtonState.Pressed)
+        {
+            _dragStartPoint = null;
+            return;
+        }
+
+        _dragStartAllowed = CanDragWindow(e.OriginalSource);
+        if (!_dragStartAllowed)
+        {
+            _dragStartPoint = null;
+            return;
+        }
+
+        _dragStartPoint = e.GetPosition(this);
+        PreviewMouseMove += OnPreviewDragMove;
+        PreviewMouseLeftButtonUp += OnPreviewDragUp;
+    }
+
+    private void OnPreviewDragMove(object sender, MouseEventArgs e)
+    {
+        if (_dragStartPoint is not { } start
+            || e.LeftButton != MouseButtonState.Pressed)
+        {
+            EndDragTracking();
+            return;
+        }
+
+        var pos = e.GetPosition(this);
+        var moved = Math.Abs(pos.X - start.X) >= SystemParameters.MinimumHorizontalDragDistance
+                    || Math.Abs(pos.Y - start.Y) >= SystemParameters.MinimumVerticalDragDistance;
+        if (!moved) return;
+
+        EndDragTracking();
         try
         {
             DragMove();
@@ -52,8 +90,18 @@ public abstract class GlassWindow : Window
         }
     }
 
+    private void OnPreviewDragUp(object sender, MouseButtonEventArgs e) => EndDragTracking();
+
+    private void EndDragTracking()
+    {
+        _dragStartPoint = null;
+        PreviewMouseMove -= OnPreviewDragMove;
+        PreviewMouseLeftButtonUp -= OnPreviewDragUp;
+    }
+
     /// <summary>
-    /// 命中交互控件（按钮/输入/滑杆/表格单元格/表头/滚动条/页签等）时不拖动。
+    /// 命中真正交互控件（按钮/输入/滑杆/表头/滚动条/页签/列表等）时不拖动。
+    /// 表格行 / 单元格允许拖动（轻点无位移仍正常选择行）。
     /// 子类可覆写扩展规则（返回 false 阻止拖动）。
     /// </summary>
     protected virtual bool CanDragWindow(object source)
@@ -62,7 +110,7 @@ public abstract class GlassWindow : Window
         {
             if (d is Button or TextBox or ComboBox or ComboBoxItem or Slider or CheckBox
                 or RadioButton or Thumb or ScrollBar or TabItem or ListBox or ListBoxItem
-                or DataGridCell or DataGridColumnHeader or DataGridRow or ScrollViewer)
+                or DataGridColumnHeader or ScrollViewer)
                 return false;
         }
         return true;
