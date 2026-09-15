@@ -31,6 +31,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IAlertRepository _alertRepo;
     private readonly IQuoteSnapshotRepository _snapshotRepo;
     private readonly ITradingCalendar _tradingCalendar;
+    private readonly IKlineArchiver _klineArchiver;
 
     private readonly DispatcherTimer _refreshTimer;
     private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;
@@ -112,7 +113,8 @@ public partial class MainViewModel : ObservableObject
         ITencentQuoteApi api,
         IAlertRepository alertRepo,
         IQuoteSnapshotRepository snapshotRepo,
-        ITradingCalendar tradingCalendar)
+        ITradingCalendar tradingCalendar,
+        IKlineArchiver klineArchiver)
     {
         _settingsService = settingsService;
         _watchlistRepo = watchlistRepo;
@@ -121,6 +123,7 @@ public partial class MainViewModel : ObservableObject
         _alertRepo = alertRepo;
         _snapshotRepo = snapshotRepo;
         _tradingCalendar = tradingCalendar;
+        _klineArchiver = klineArchiver;
 
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(5000) };
         _refreshTimer.Tick += async (_, _) => await RefreshAsync();
@@ -318,6 +321,11 @@ public partial class MainViewModel : ObservableObject
 
             if (result.TriggeredAlerts.Count > 0)
                 AlertsTriggered?.Invoke(result.TriggeredAlerts);
+
+            // 收盘归档：交易日 15:05 后首个刷新落库（后台执行避免阻塞 UI；幂等可重试）
+            var archivedQuotes = result.Quotes;
+            var now = DateTime.Now;
+            _ = Task.Run(() => _klineArchiver.TryArchive(archivedQuotes, now));
         }
         catch (Exception)
         {

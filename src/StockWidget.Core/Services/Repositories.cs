@@ -147,6 +147,8 @@ public interface IAmountHistoryRepository
     DailyAmountEntity? GetLatestBefore(DateTime date);
     /// <summary>全部历史（升序）。</summary>
     List<DailyAmountEntity> GetAll();
+    /// <summary>最近 N 个有记录的交易日（按日期升序返回）。</summary>
+    List<DailyAmountEntity> GetRecent(int days);
     /// <summary>清理早于指定日期的记录，返回删除条数。</summary>
     int PruneOlderThan(DateTime date);
 }
@@ -190,6 +192,16 @@ public sealed class AmountHistoryRepository(IDbContextFactory<StockWidgetDbConte
     {
         using var db = dbFactory.CreateDbContext();
         return db.DailyAmountHistory.OrderBy(x => x.Date).ToList();
+    }
+
+    public List<DailyAmountEntity> GetRecent(int days)
+    {
+        using var db = dbFactory.CreateDbContext();
+        return db.DailyAmountHistory.AsNoTracking()
+            .OrderByDescending(d => d.Date)
+            .Take(days)
+            .OrderBy(d => d.Date)
+            .ToList();
     }
 
     public int PruneOlderThan(DateTime date)
