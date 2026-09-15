@@ -103,17 +103,27 @@ public partial class StockRowViewModel : ObservableObject
         FlashBrush = Brushes.Transparent;
     }
 
+    /// <summary>整行色调：按涨跌幅红 / 绿（对齐旧版"整行同色"），平盘 / 无数据用默认色。</summary>
+    private string RowTone => Current.ChangePct switch
+    {
+        null or 0 => "flat",
+        > 0 => "up",
+        _ => "down",
+    };
+
     private CellValue BuildCell(string fieldKey)
     {
         if (!Current.Success)
             return new CellValue(Info.Name.Length > 0 ? Info.Name : "-", "fail");
+
+        var rowTone = RowTone;
 
         switch (fieldKey)
         {
             case "name":
             {
                 var name = Current.Name is "-" or "" ? (Info.Name.Length > 0 ? Info.Name : "-") : Current.Name;
-                return new CellValue(name, "plain");
+                return new CellValue(name, rowTone);
             }
             case "price":
             {
@@ -123,7 +133,7 @@ public partial class StockRowViewModel : ObservableObject
                     var upNow = Current.ChangePct is { } cp ? cp > 0 : ap >= Current.PrevClose;
                     return new CellValue($"{ap:0.###} {(upNow ? "↑" : "↓")}", upNow ? "up" : "down");
                 }
-                return Current.Price is { } p ? new CellValue($"{p:0.###}", "plain") : new CellValue("-", "plain");
+                return Current.Price is { } p ? new CellValue($"{p:0.###}", rowTone) : new CellValue("-", "plain");
             }
         }
 
@@ -133,7 +143,6 @@ public partial class StockRowViewModel : ObservableObject
         var text = PercentFieldKeys.Contains(fieldKey) ? $"{v:0.00}%"
             : CountFieldKeys.Contains(fieldKey) ? $"{v:N0}"
             : $"{v:0.###}";
-        var tone = fieldKey == "change" ? v switch { > 0 => "up", < 0 => "down", _ => "flat" } : "plain";
-        return new CellValue(text, tone);
+        return new CellValue(text, rowTone);
     }
 }

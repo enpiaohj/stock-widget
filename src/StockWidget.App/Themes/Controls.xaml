@@ -317,6 +317,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">
+                    <Grid>
                     <Border x:Name="bd" Background="Transparent" CornerRadius="6" Padding="10,7" Margin="0,0.5">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -329,6 +330,19 @@
                                   Visibility="Collapsed" x:Name="arrow" />
                         </Grid>
                     </Border>
+                    <!-- 二级子菜单弹出容器：缺少此 Popup 时 SubmenuHeader 只显箭头、子菜单无法展开 -->
+                    <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsSubmenuOpen}"
+                           Placement="Right" AllowsTransparency="True" Focusable="False"
+                           PopupAnimation="Fade">
+                        <Border Background="{DynamicResource MenuBgBrush}" CornerRadius="10"
+                                BorderBrush="{DynamicResource ControlBorderBrush}" BorderThickness="1"
+                                Padding="5" Margin="6,0,10,10">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="420">
+                                <ItemsPresenter />
+                            </ScrollViewer>
+                        </Border>
+                    </Popup>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Role" Value="SubmenuHeader">
                             <Setter TargetName="arrow" Property="Visibility" Value="Visible" />

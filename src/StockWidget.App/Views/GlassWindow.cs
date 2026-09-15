@@ -102,6 +102,8 @@ public abstract class GlassWindow : Window
     /// <summary>
     /// 命中真正交互控件（按钮/输入/滑杆/表头/滚动条/页签/列表等）时不拖动。
     /// 表格行 / 单元格允许拖动（轻点无位移仍正常选择行）。
+    /// 注意：不排除 ScrollViewer —— DataGrid 内部模板自带 ScrollViewer，
+    /// 若排除则表格区域永远不可拖；滚动条交互由 ScrollBar 排除保证。
     /// 子类可覆写扩展规则（返回 false 阻止拖动）。
     /// </summary>
     protected virtual bool CanDragWindow(object source)
@@ -110,7 +112,7 @@ public abstract class GlassWindow : Window
         {
             if (d is Button or TextBox or ComboBox or ComboBoxItem or Slider or CheckBox
                 or RadioButton or Thumb or ScrollBar or TabItem or ListBox or ListBoxItem
-                or DataGridColumnHeader or ScrollViewer)
+                or DataGridColumnHeader)
                 return false;
         }
         return true;

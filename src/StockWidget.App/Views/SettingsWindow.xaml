@@ -8,6 +8,9 @@
                    ResizeMode="NoResize"
                    ShowInTaskbar="False"
                    Background="{DynamicResource BgBrush}">
+    <!-- 与主窗口对齐的渐变卡片容器（深色主题层次一致） -->
+    <Border CornerRadius="12" Background="{DynamicResource CardGradientBrush}"
+            BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1" Margin="7">
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -245,4 +248,5 @@
             <Button Content="取消" Width="90" Margin="10,0,0,0" Click="Cancel_Click" />
         </StackPanel>
     </Grid>
+    </Border>
 </views:GlassWindow>

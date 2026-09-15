@@ -203,9 +203,9 @@ public partial class MainWindow : GlassWindow
             : 0;
         var height = rows * Grid.RowHeight
                      + groupCount * 26   // 分组头
-                     + 34                // 列表头
-                     + 40                // 量能栏
-                     + 30;               // 卡片内边距
+                     + 26                // 列表头
+                     + 28                // 量能栏
+                     + 24;               // 卡片边距（收紧，避免底部大片空白）
         var maxH = SystemParameters.WorkArea.Height - 20;
         Height = Math.Clamp(height, 240, maxH);
     }
