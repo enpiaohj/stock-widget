@@ -10,6 +10,7 @@ using StockWidget.App.Services;
 using StockWidget.App.ViewModels;
 using StockWidget.Core.Models;
 using StockWidget.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace StockWidget.App.Views;
 
@@ -344,13 +345,18 @@ public partial class MainWindow : GlassWindow
         var add = new MenuItem { Header = "➕ 添加股票" };
         add.Click += async (_, _) =>
         {
-            var dlg = new InputDialog("添加股票", "股票代码 / 名称拼音 / 关键字：", "例如：600390、00700、AAPL")
+            var api = App.Services.GetRequiredService<ITencentQuoteApi>();
+            var dlg = new InputDialog(
+                "添加股票",
+                "股票代码 / 名称 / 拼音关键字：",
+                "例如：600390、浦发、pfyh、00700、AAPL",
+                kw => api.SearchSuggestAsync(kw))
             {
                 Owner = this,
             };
             if (dlg.ShowDialog() != true) return;
 
-            var result = await _vm.AddStockAsync(dlg.Input);
+            var result = await _vm.AddStockAsync(dlg.SelectedMatch?.Code ?? dlg.Input);
             switch (result)
             {
                 case AddStockResult.Ok:
