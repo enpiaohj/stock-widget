@@ -1,0 +1,46 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 浅色主题 -->
+
+    <SolidColorBrush x:Key="BgBrush" Color="#D8F6F6F8" />
+    <SolidColorBrush x:Key="BgFallbackBrush" Color="#FBF6F6F8" />
+    <SolidColorBrush x:Key="CardBrush" Color="#5A000000" />
+    <SolidColorBrush x:Key="FgBrush" Color="#1A1A1E" />
+    <SolidColorBrush x:Key="SubFgBrush" Color="#6B6B74" />
+
+    <SolidColorBrush x:Key="UpBrush" Color="#E03131" />
+    <SolidColorBrush x:Key="DownBrush" Color="#0CA678" />
+    <SolidColorBrush x:Key="FlatBrush" Color="#343A40" />
+    <SolidColorBrush x:Key="FailBrush" Color="#ADB5BD" />
+
+    <SolidColorBrush x:Key="AccentBrush" Color="#E8590C" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#26E8590C" />
+
+    <SolidColorBrush x:Key="RowHoverBrush" Color="#14000000" />
+    <SolidColorBrush x:Key="RowSelectedBrush" Color="#262F6FDE" />
+    <SolidColorBrush x:Key="HeaderLineBrush" Color="#33000000" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#22000000" />
+    <SolidColorBrush x:Key="FlashUpBrush" Color="#66FFC9C9" />
+    <SolidColorBrush x:Key="FlashDownBrush" Color="#66B8F2D9" />
+
+    <SolidColorBrush x:Key="ControlBgBrush" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#F1F3F5" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#55000000" />
+    <SolidColorBrush x:Key="MenuBgBrush" Color="#F8FFFFFF" />
+    <SolidColorBrush x:Key="MenuHoverBrush" Color="#26E8590C" />
+    <SolidColorBrush x:Key="ToolTipBgBrush" Color="#F8FFFFFF" />
+    <SolidColorBrush x:Key="GroupHeaderBrush" Color="#CCE8590C" />
+
+    <!-- 卡片渐变底（顶部高光 + 下部主色） -->
+    <LinearGradientBrush x:Key="CardGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#1AFFFFFF" Offset="0" />
+        <GradientStop Color="#FAFDFDFE" Offset="0.5" />
+        <GradientStop Color="#F1F3F5" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="CardShadowBrush" Color="#2E000000" />
+    <Color x:Key="CardShadowEffectBrush">#55000000</Color>
+    <SolidColorBrush x:Key="HoverStrokeBrush" Color="#17000000" />
+    <SolidColorBrush x:Key="LockBrush" Color="#63636E" />
+    <SolidColorBrush x:Key="BaselineBrush" Color="#40E8590C" />
+</ResourceDictionary>

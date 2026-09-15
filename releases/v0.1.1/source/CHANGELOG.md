@@ -3,12 +3,7 @@
 所有对外可感知的变更记录于此。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，
 版本号遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
-## [0.1.1] - 2026-09-15
-
-### Fixed
-
-- 修复启动崩溃：主窗口 `DropShadowEffect` 的 `Color` 属性引用了 `SolidColorBrush` 资源导致 `XamlParseException`（设置 `UIElement.Effect` 异常，应用无法启动）
-- 窗口阴影改为代码容错加载：无 GPU / 远程会话 / 软件渲染环境下 `DropShadowEffect` 创建失败时静默回退为无阴影细边框，保证应用始终正常启动与渲染
+## [0.1.1] - Unreleased
 
 ## [0.1.0] - 2026-09-15
 

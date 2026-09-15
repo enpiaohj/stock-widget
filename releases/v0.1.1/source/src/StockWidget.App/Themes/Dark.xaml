@@ -1,0 +1,50 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 深色主题：亚克力/毛玻璃背景下的深色调色板 -->
+
+    <SolidColorBrush x:Key="BgBrush" Color="#CC141417" />
+    <!-- 无系统模糊（Win10）时的回退底色：更不透明保证可读 -->
+    <SolidColorBrush x:Key="BgFallbackBrush" Color="#F2141417" />
+    <SolidColorBrush x:Key="CardBrush" Color="#26FFFFFF" />
+    <SolidColorBrush x:Key="FgBrush" Color="#F2F2F2" />
+    <SolidColorBrush x:Key="SubFgBrush" Color="#9A9AA5" />
+
+    <!-- 涨跌色（A 股习惯：红涨绿跌） -->
+    <SolidColorBrush x:Key="UpBrush" Color="#FF5C5C" />
+    <SolidColorBrush x:Key="DownBrush" Color="#3DD68C" />
+    <SolidColorBrush x:Key="FlatBrush" Color="#E8E8E8" />
+    <SolidColorBrush x:Key="FailBrush" Color="#8E8E96" />
+
+    <SolidColorBrush x:Key="AccentBrush" Color="#FFA843" />
+    <SolidColorBrush x:Key="AccentSoftBrush" Color="#33FFA843" />
+
+    <!-- 表格 -->
+    <SolidColorBrush x:Key="RowHoverBrush" Color="#1AFFFFFF" />
+    <SolidColorBrush x:Key="RowSelectedBrush" Color="#33689BE8" />
+    <SolidColorBrush x:Key="HeaderLineBrush" Color="#33FFFFFF" />
+    <SolidColorBrush x:Key="DividerBrush" Color="#22FFFFFF" />
+    <SolidColorBrush x:Key="FlashUpBrush" Color="#55FF5C5C" />
+    <SolidColorBrush x:Key="FlashDownBrush" Color="#553DD68C" />
+
+    <!-- 控件 -->
+    <SolidColorBrush x:Key="ControlBgBrush" Color="#2E2E33" />
+    <SolidColorBrush x:Key="ControlHoverBrush" Color="#3A3A41" />
+    <SolidColorBrush x:Key="ControlBorderBrush" Color="#44FFFFFF" />
+    <SolidColorBrush x:Key="MenuBgBrush" Color="#F01C1C20" />
+    <SolidColorBrush x:Key="MenuHoverBrush" Color="#33FFA843" />
+    <SolidColorBrush x:Key="ToolTipBgBrush" Color="#F02A2A30" />
+    <SolidColorBrush x:Key="GroupHeaderBrush" Color="#CCFFA843" />
+
+    <!-- 卡片渐变底（顶部高光 + 下部主色） -->
+    <LinearGradientBrush x:Key="CardGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#38FFFFFF" Offset="0" />
+        <GradientStop Color="#F823232A" Offset="0.5" />
+        <GradientStop Color="#F8181820" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="CardShadowBrush" Color="#8A000000" />
+    <Color x:Key="CardShadowEffectBrush">#FF000000</Color>
+    <SolidColorBrush x:Key="HoverStrokeBrush" Color="#21FFFFFF" />
+    <SolidColorBrush x:Key="LockBrush" Color="#A2A2AE" />
+    <SolidColorBrush x:Key="BaselineBrush" Color="#59FFA640" />
+</ResourceDictionary>
