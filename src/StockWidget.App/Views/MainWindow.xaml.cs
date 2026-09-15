@@ -30,6 +30,7 @@ public partial class MainWindow : GlassWindow
     private const double FadeDurationMs = 120;
     private HwndSource? _hwndSource;
     private MinuteChartWindow? _minuteWindow;
+    private AmountTrendWindow? _amountTrendWindow;
 
     // 供 XAML 绑定的行字体（避免与 Window 自带属性重名）
     public static readonly DependencyProperty RowFontFamilyProperty = DependencyProperty.Register(
@@ -93,6 +94,8 @@ public partial class MainWindow : GlassWindow
             _minuteWindow = new MinuteChartWindow(_vm, row) { Owner = this };
             _minuteWindow.Show();
         };
+        // 成交额趋势窗口单实例：已打开则激活复用
+        _vm.AmountTrendRequested += OpenAmountTrend;
         _vm.AlertsTriggered += alerts =>
             ToastService.ShowAlerts(alerts);
 
@@ -280,6 +283,30 @@ public partial class MainWindow : GlassWindow
         ToggleVisibility();
     }
 
+    /// <summary>
+    /// 底部量能栏点击：单击显示昨日成交额摘要（成交额文本自身已处理），双击打开成交额趋势窗口。
+    /// </summary>
+    private void AmountText_Click(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount >= 2)
+        {
+            e.Handled = true;
+            OpenAmountTrend();
+        }
+    }
+
+    /// <summary>成交额趋势窗口单实例打开。</summary>
+    private void OpenAmountTrend()
+    {
+        if (_amountTrendWindow is { IsLoaded: true } w)
+        {
+            w.Activate();
+            return;
+        }
+        _amountTrendWindow = new AmountTrendWindow(_vm) { Owner = this };
+        _amountTrendWindow.Show();
+    }
+
     // ---------------------------
     // 底部量能栏（富文本）
     // ---------------------------
@@ -311,7 +338,7 @@ public partial class MainWindow : GlassWindow
             Cursor = Cursors.Hand,
         };
         amountRun.MouseLeftButtonUp += (_, _) =>
-            ShowTooltip(_vm.YesterdaySummary);
+            ShowTooltip($"{_vm.YesterdaySummary}\n（双击打开成交额趋势）");
         Typography.SetNumeralAlignment(amountRun, FontNumeralAlignment.Tabular);
         inlines.Add(amountRun);
 
@@ -509,6 +536,10 @@ public partial class MainWindow : GlassWindow
         windowMenu.Items.Add(resetPos);
         menu.Items.Add(windowMenu);
         menu.Items.Add(new Separator { Style = (Style)FindResource("MenuSeparatorStyle") });
+
+        var trendItem = new MenuItem { Header = "📈 成交额趋势" };
+        trendItem.Click += (_, _) => OpenAmountTrend();
+        menu.Items.Add(trendItem);
 
         var themeItem = new MenuItem { Header = "🌓 切换主题" };
         themeItem.Click += (_, _) => _vm.ToggleTheme();
