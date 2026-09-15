@@ -216,9 +216,9 @@ public partial class MainWindow : GlassWindow
             : 0;
         var height = rows * Grid.RowHeight
                      + groupCount * 26   // 分组头
-                     + 24                // 列表头
-                     + 24                // 量能栏
-                     + 18;               // 卡片边距
+                     + 22                // 列表头
+                     + 22                // 量能栏
+                     + 8;                // 边距（收紧到约一行股票位置）
         var maxH = SystemParameters.WorkArea.Height - 20;
         Height = Math.Clamp(height, 240, maxH);
     }
