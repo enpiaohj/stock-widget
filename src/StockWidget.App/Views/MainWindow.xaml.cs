@@ -81,6 +81,9 @@ public partial class MainWindow : GlassWindow
             {
                 RebuildAmountText();
             }
+            if (e.PropertyName is nameof(MainViewModel.StatusText) or nameof(MainViewModel.Settings))
+                LockBadge.Visibility = _vm.Settings.ShowLockedStatus && _vm.Settings.Locked
+                    ? Visibility.Visible : Visibility.Collapsed;
             if (e.PropertyName == nameof(MainViewModel.MarketClosed))
                 MarketClosedBadge.Visibility = _vm.MarketClosed ? Visibility.Visible : Visibility.Collapsed;
             if (e.PropertyName == nameof(MainViewModel.MarketMoodPct))
@@ -228,16 +231,17 @@ public partial class MainWindow : GlassWindow
             FontWeight = FontWeights.Bold,
         });
 
-        var total = new Run($"{_vm.TotalAmountText} 亿")
+        var amountRun = new Run($"{_vm.TotalAmountText} 亿")
         {
             Foreground = FlatStrongBrush(),
             FontWeight = FontWeights.Bold,
             FontSize = AmountText.FontSize + 1,
             Cursor = Cursors.Hand,
         };
-        total.MouseLeftButtonUp += (_, _) =>
+        amountRun.MouseLeftButtonUp += (_, _) =>
             ShowTooltip(_vm.YesterdaySummary);
-        inlines.Add(total);
+        Typography.SetNumeralAlignment(amountRun, FontNumeralAlignment.Tabular);
+        inlines.Add(amountRun);
 
         if (!string.IsNullOrEmpty(_vm.AmountDiffText))
         {
