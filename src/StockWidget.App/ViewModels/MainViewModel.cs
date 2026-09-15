@@ -408,23 +408,39 @@ public partial class MainViewModel : ObservableObject
     // 迷你走势（当日快照）
     // ---------------------------
 
+    /// <summary>
+    /// 加载当日走势快照。数据库查询全部在后台线程执行——此前在 UI 线程逐行同步查询
+    /// （N 只股票 = N 次查询，且与后台快照写入抢锁），每 5 秒刷新一次导致 UI 周期性卡顿，
+    /// 表现为透明度/切换主题/调整顺序等操作间歇性无响应。
+    /// </summary>
     private void LoadSparklines()
     {
         var today = DateTime.Today;
-        foreach (var row in Rows)
+        var codes = Rows.Select(r => r.Code).ToList();
+        var snapshotRepo = _snapshotRepo;
+        _ = Task.Run(async () =>
         {
-            try
+            var map = new Dictionary<string, IReadOnlyList<decimal>>(StringComparer.OrdinalIgnoreCase);
+            foreach (var code in codes)
             {
-                var points = _snapshotRepo.GetTodayByCode(row.Code, today)
-                    .Select(s => s.Price ?? 0m)
-                    .ToList();
-                row.SparkValues = points;
+                try
+                {
+                    map[code] = snapshotRepo.GetTodayByCode(code, today)
+                        .Select(s => s.Price ?? 0m)
+                        .ToList();
+                }
+                catch
+                {
+                    map[code] = [];
+                }
             }
-            catch
+
+            await _dispatcher.InvokeAsync(() =>
             {
-                row.SparkValues = [];
-            }
-        }
+                foreach (var row in Rows)
+                    row.SparkValues = map.TryGetValue(row.Code, out var pts) ? pts : [];
+            });
+        });
     }
 
     /// <summary>取某只股票的分时数据（分时弹窗）。</summary>
