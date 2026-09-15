@@ -431,6 +431,44 @@ public partial class SettingsWindow : GlassWindow
         }
     }
 
+    private async void ExportBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.SaveFileDialog
+        {
+            Title = "导出数据备份",
+            Filter = "StockWidget 备份 (*.json)|*.json",
+            FileName = $"StockWidget-数据备份-{DateTime.Now:yyyyMMdd}.json",
+        };
+        if (dlg.ShowDialog(this) != true) return;
+
+        var svc = App.Services.GetRequiredService(typeof(IBackupService)) as IBackupService;
+        var result = await svc!.ExportAsync(dlg.FileName);
+        MessageBox.Show(this, result.Message, "导出数据备份",
+            MessageBoxButton.OK, result.Success ? MessageBoxImage.Information : MessageBoxImage.Warning);
+    }
+
+    private async void ImportBackup_Click(object sender, RoutedEventArgs e)
+    {
+        var dlg = new Microsoft.Win32.OpenFileDialog
+        {
+            Title = "导入数据备份",
+            Filter = "StockWidget 备份 (*.json)|*.json",
+        };
+        if (dlg.ShowDialog(this) != true) return;
+
+        var svc = App.Services.GetRequiredService(typeof(IBackupService)) as IBackupService;
+        var result = await svc!.ImportAsync(dlg.FileName);
+        if (!result.Success)
+        {
+            MessageBox.Show(this, result.Message, "导入数据备份", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        MessageBox.Show(this, result.Message, "导入数据备份", MessageBoxButton.OK, MessageBoxImage.Information);
+        // 重新加载自选股（与"从旧版导入"一致）；设置在重启后完全生效
+        await _vm.InitializeAsync();
+    }
+
     // ---------------------------
     // 收集与应用
     // ---------------------------

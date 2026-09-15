@@ -234,6 +234,10 @@
                                     <Button Content="打开数据目录" Width="110" Click="OpenDataDir_Click" />
                                     <Button Content="从旧版导入数据…" Width="130" Margin="10,0,0,0" Click="ImportLegacy_Click" />
                                 </StackPanel>
+                                <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                                    <Button Content="导出数据备份…" Width="110" Click="ExportBackup_Click" />
+                                    <Button Content="导入数据备份…" Width="110" Margin="10,0,0,0" Click="ImportBackup_Click" />
+                                </StackPanel>
                             </StackPanel>
                         </Border>
                     </StackPanel>

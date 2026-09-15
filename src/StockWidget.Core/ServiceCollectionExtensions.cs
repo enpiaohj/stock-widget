@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IQuoteSnapshotRepository, QuoteSnapshotRepository>();
         services.AddSingleton<IAlertRepository, AlertRepository>();
         services.AddSingleton<ILegacyImporter, LegacyImporter>();
+        services.AddSingleton<IBackupService, BackupService>();
         services.AddSingleton<ITencentQuoteApi, TencentQuoteApi>();
         services.AddSingleton<IPriceRefreshService, PriceRefreshService>();
 

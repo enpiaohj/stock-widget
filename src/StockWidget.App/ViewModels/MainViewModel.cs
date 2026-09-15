@@ -130,9 +130,10 @@ public partial class MainViewModel : ObservableObject
 
     public ICollectionView RowsView { get; private set; } = null!;
 
-    /// <summary>启动：加载设置与自选股、应用配置、首刷。</summary>
+    /// <summary>启动：加载设置与自选股、应用配置、首刷。导入数据后可重复调用以重载。</summary>
     public async Task InitializeAsync()
     {
+        Rows.Clear();
         _cfg = _settingsService.Current.Clone();
         _watchlist = _watchlistRepo.GetAllOrSeed();
 
