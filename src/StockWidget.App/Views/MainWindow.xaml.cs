@@ -202,6 +202,12 @@ public partial class MainWindow : GlassWindow
     /// 按内容自适应窗口尺寸（旧版语义）：宽 = 列宽合计 + 边距；高 = 行数 × 行高 + 表头与量能栏。
     /// 超出工作区时钳制（此时表格内部滚动兜底），避免列被硬裁剪只见前几列。
     /// </summary>
+    /// <summary>分组头总高（未开启分组为 0）。</summary>
+    private double groupCountHeader() =>
+        _vm.Settings.GroupByCategory && _vm.Rows.Count > 0
+            ? _vm.Rows.Select(r => r.CategoryName).Distinct().Count() * 26
+            : 0;
+
     private void AutoSizeWindow()
     {
         double width = 44; // 卡片内边距 + 表格边距
@@ -210,8 +216,15 @@ public partial class MainWindow : GlassWindow
         var maxW = SystemParameters.WorkArea.Width * 0.95;
         Width = Math.Clamp(width, MinWidth, maxW);
 
-        // 高度由 SizeToContent=Height 按内容精确决定（无空白）；仅限制屏幕高度上限，超出时表格内部滚动
-        MaxHeight = SystemParameters.WorkArea.Height - 10;
+        var rows = _vm.Rows.Count;
+        var rowH = Grid.RowHeight is double rh && !double.IsNaN(rh) ? rh : 30.0;
+        var height = rows * rowH
+                     + groupCountHeader()
+                     + 22                // 列表头
+                     + 22                // 量能栏
+                     + 8;                // 边距
+        var maxH = SystemParameters.WorkArea.Height - 10;
+        Height = Math.Clamp(height, 240, maxH);
     }
 
     private DataGridTemplateColumn BuildValueColumn(FieldDefinitions.FieldDef def)
