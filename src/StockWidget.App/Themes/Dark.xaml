@@ -47,4 +47,6 @@
     <SolidColorBrush x:Key="HoverStrokeBrush" Color="#21FFFFFF" />
     <SolidColorBrush x:Key="LockBrush" Color="#A2A2AE" />
     <SolidColorBrush x:Key="BaselineBrush" Color="#59FFA640" />
+    <SolidColorBrush x:Key="StatusBrush" Color="#38BDF8" />
+    <SolidColorBrush x:Key="RowLineBrush" Color="#4AFFFFFF" />
 </ResourceDictionary>

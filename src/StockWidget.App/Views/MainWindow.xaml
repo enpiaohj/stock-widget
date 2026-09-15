@@ -10,12 +10,12 @@
                    TextOptions.TextRenderingMode="ClearType"
                    UseLayoutRounding="True">
 
-    <Border x:Name="CardShadowHost" CornerRadius="12" Margin="7" Background="Transparent">
-        <Border CornerRadius="12" ClipToBounds="True">
+    <Border x:Name="CardShadowHost" CornerRadius="0" Margin="0" Background="Transparent">
+        <Border CornerRadius="0" ClipToBounds="True">
             <Border Background="{DynamicResource CardGradientBrush}"
                     BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1"
-                    CornerRadius="12">
-                <Border CornerRadius="11" Background="{DynamicResource HoverStrokeBrush}"
+                    CornerRadius="0">
+                <Border CornerRadius="0" Background="{DynamicResource HoverStrokeBrush}"
                         BorderThickness="1" BorderBrush="{DynamicResource HoverStrokeBrush}"
                         Opacity="0.6" Margin="1">
                     <Grid Margin="8,6,8,6" Background="Transparent">
@@ -60,6 +60,8 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock x:Name="AmountText" Grid.Column="0" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis"
+                           FontFamily="{Binding RowFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
+                           FontStyle="{Binding RowFontStyle, RelativeSource={RelativeSource AncestorType=Window}}"
                            MouseLeave="AmountText_MouseLeave"
                            MouseMove="AmountText_MouseMove" />
                 <Border x:Name="LockBadge" Grid.Column="1" Visibility="Collapsed"

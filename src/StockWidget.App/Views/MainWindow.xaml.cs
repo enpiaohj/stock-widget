@@ -106,7 +106,6 @@ public partial class MainWindow : GlassWindow
         SourceInitialized += (_, _) => HookHotkey();
         Loaded += async (_, _) =>
         {
-            TryApplyWindowShadow();
             RebuildColumns();
             RebuildAmountText();
             BuildContextMenu();

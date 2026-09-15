@@ -111,8 +111,8 @@ public abstract class GlassWindow : Window
     }
 
     /// <summary>
-    /// 命中真正交互控件（按钮/输入/滑杆/表头/滚动条/页签/列表等）时不拖动。
-    /// 表格行 / 单元格允许拖动（轻点无位移仍正常选择行）。
+    /// 命中真正交互控件（按钮/输入/滑杆/滚动条/页签/列表等）时不拖动。
+    /// 表格行 / 单元格 / 表头允许拖动（位移判别保证：轻点=排序、双击=显隐、按住移动=拖窗，互不冲突）。
     /// 注意：不排除 ScrollViewer —— DataGrid 内部模板自带 ScrollViewer，
     /// 若排除则表格区域永远不可拖；滚动条交互由 ScrollBar 排除保证。
     /// 子类可覆写扩展规则（返回 false 阻止拖动）。
@@ -122,8 +122,7 @@ public abstract class GlassWindow : Window
         for (var d = source as DependencyObject; d is not null; d = GetVisualParent(d))
         {
             if (d is Button or TextBox or ComboBox or ComboBoxItem or Slider or CheckBox
-                or RadioButton or Thumb or ScrollBar or TabItem or ListBox or ListBoxItem
-                or DataGridColumnHeader)
+                or RadioButton or Thumb or ScrollBar or TabItem or ListBox or ListBoxItem)
                 return false;
         }
         return true;
@@ -141,7 +140,7 @@ public abstract class GlassWindow : Window
         {
             CaptionHeight = 0,
             ResizeBorderThickness = new Thickness(0),
-            GlassFrameThickness = new Thickness(-1), // DWM 玻璃延伸到客户区 → 阴影 + 系统模糊
+            GlassFrameThickness = new Thickness(0), // 不延伸 DWM 边框（避免四周系统边框线）
             CornerRadius = new CornerRadius(0),
             UseAeroCaptionButtons = false,
         });
