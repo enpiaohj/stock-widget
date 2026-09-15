@@ -14,8 +14,12 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="📈 沪深成交额趋势（近 60 个交易日）" FontSize="14" FontWeight="Bold"
-                   Foreground="{DynamicResource FgBrush}" />
+        <Grid Grid.Row="0">
+            <TextBlock Text="📈 沪深成交额趋势（近 60 个交易日）" FontSize="14" FontWeight="Bold"
+                       Foreground="{DynamicResource FgBrush}" />
+            <Button Content="✕ 关闭" Width="80" Height="26" HorizontalAlignment="Right"
+                    Click="Close_Click" VerticalAlignment="Center" />
+        </Grid>
 
         <TextBlock Grid.Row="1" x:Name="StatsText" Margin="0,4,0,0" FontSize="11"
                    TextWrapping="Wrap" Foreground="{DynamicResource SubFgBrush}" />

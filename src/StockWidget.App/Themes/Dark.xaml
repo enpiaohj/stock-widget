@@ -12,7 +12,7 @@
 
     <!-- 涨跌色（A 股习惯：红涨绿跌） -->
     <SolidColorBrush x:Key="UpBrush" Color="#FF0000" />
-    <SolidColorBrush x:Key="DownBrush" Color="#008000" />
+    <SolidColorBrush x:Key="DownBrush" Color="#00A05A" />
     <SolidColorBrush x:Key="FlatBrush" Color="#E8E8E8" />
     <SolidColorBrush x:Key="FailBrush" Color="#8E8E96" />
 

@@ -34,6 +34,7 @@
                       FontFamily="{Binding RowFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
                       FontSize="{Binding RowFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
                       FontStyle="{Binding RowFontStyle, RelativeSource={RelativeSource AncestorType=Window}}"
+                      FontWeight="Bold"
                       VirtualizingPanel.ScrollUnit="Pixel"
                       ScrollViewer.HorizontalScrollBarVisibility="Auto">
                 <DataGrid.GroupStyle>
@@ -62,6 +63,7 @@
                            TextTrimming="CharacterEllipsis"
                            FontFamily="{Binding RowFontFamily, RelativeSource={RelativeSource AncestorType=Window}}"
                            FontStyle="{Binding RowFontStyle, RelativeSource={RelativeSource AncestorType=Window}}"
+                      FontWeight="Bold"
                            MouseLeave="AmountText_MouseLeave"
                            MouseMove="AmountText_MouseMove"
                            MouseLeftButtonUp="AmountText_Click" />

@@ -14,11 +14,14 @@ public partial class AmountTrendWindow : GlassWindow
         _vm = vm;
         InitializeComponent();
         Loaded += async (_, _) => await LoadAsync();
+
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape) Close(); // Esc 关闭
         };
     }
+
+    private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
     private async Task LoadAsync()
     {

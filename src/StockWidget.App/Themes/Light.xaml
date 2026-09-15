@@ -10,7 +10,7 @@
     <SolidColorBrush x:Key="SubFgBrush" Color="#6B6B74" />
 
     <SolidColorBrush x:Key="UpBrush" Color="#FF0000" />
-    <SolidColorBrush x:Key="DownBrush" Color="#008000" />
+    <SolidColorBrush x:Key="DownBrush" Color="#00924A" />
     <SolidColorBrush x:Key="FlatBrush" Color="#343A40" />
     <SolidColorBrush x:Key="FailBrush" Color="#ADB5BD" />
 
