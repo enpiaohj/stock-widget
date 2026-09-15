@@ -368,14 +368,14 @@ public partial class MainWindow : GlassWindow
     // 行交互
     // ---------------------------
 
-    private void Row_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+    /// <summary>悬停显示股票信息（原为单击触发）。</summary>
+    private void Row_MouseEnter(object sender, MouseEventArgs e)
     {
-        if (sender is DataGridRow { DataContext: StockRowViewModel row }
-            && ReferenceEquals(Grid.SelectedItem, row))
-        {
+        if (sender is DataGridRow { DataContext: StockRowViewModel row })
             ShowTooltip($"📈 {row.Current.Name}（{row.CodeDisplay}）");
-        }
     }
+
+    private void Row_MouseLeave(object sender, MouseEventArgs e) => _tip.IsOpen = false;
 
     private void Row_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {

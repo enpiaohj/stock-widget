@@ -48,9 +48,8 @@
                                     <TextBlock Text="窗口透明度" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
                                     <Slider x:Name="OpacitySlider" Grid.Column="1" Minimum="10" Maximum="100"
                                             ValueChanged="Opacity_ValueChanged" VerticalAlignment="Center" />
-                                    <TextBox x:Name="OpacityBox" Grid.Column="2" Width="56" HorizontalAlignment="Left"
-                                             Margin="10,0,0,0" TextChanged="OpacityBox_TextChanged"
-                                             Style="{StaticResource NumericBoxStyle}" />
+                                    <views:SpinnerBox x:Name="OpacityBox" Grid.Column="2" Width="56" HorizontalAlignment="Left"
+                                              Margin="10,0,0,0" Min="10" Max="100" ValueChanged="OpacityBox_ValueChanged" />
                                 </Grid>
                                 <Grid Margin="0,4">
                                     <Grid.ColumnDefinitions>
@@ -61,8 +60,8 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="字体" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
                                     <ComboBox x:Name="FontBox" Grid.Column="1" MaxDropDownHeight="240" />
-                                    <TextBox x:Name="FontSizeBox" Grid.Column="2" Margin="8,0,0,0"
-                                             Style="{StaticResource NumericBoxStyle}" />
+                                    <views:SpinnerBox x:Name="FontSizeBox" Grid.Column="2" Width="48" Margin="8,0,0,0"
+                                             Min="6" Max="28" />
                                     <CheckBox x:Name="ItalicCheck" Grid.Column="3" Content="斜体"
                                               Margin="12,0,0,0" VerticalAlignment="Center" />
                                 </Grid>
@@ -79,7 +78,8 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="刷新间隔（秒）" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
-                                    <TextBox x:Name="IntervalBox" Grid.Column="1" Style="{StaticResource NumericBoxStyle}" />
+                                    <views:SpinnerBox x:Name="IntervalBox" Grid.Column="1" Width="90" HorizontalAlignment="Left"
+                                             Min="1" Max="120" />
                                     <TextBlock Grid.Column="2" Text="1 – 120 秒" VerticalAlignment="Center"
                                                Margin="8,0,0,0" Foreground="{DynamicResource SubFgBrush}" FontSize="11" />
                                 </Grid>

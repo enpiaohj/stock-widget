@@ -154,6 +154,14 @@ public abstract class GlassWindow : Window
         var hwnd = new WindowInteropHelper(this).Handle;
         if (hwnd == IntPtr.Zero) return;
 
+        // 真透明窗口与 DWM 系统亚克力互斥：透明窗口上启用 backdrop 会渲染亮色层（整体发白）
+        if (AllowsTransparency)
+        {
+            ClearBackdrop(hwnd);
+            BackdropEnabled = false;
+            return;
+        }
+
         BackdropEnabled = SetBackdrop(hwnd, darkTheme);
         UpdateBackgroundBrush();
     }

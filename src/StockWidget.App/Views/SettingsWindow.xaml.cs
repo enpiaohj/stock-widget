@@ -168,14 +168,15 @@ public partial class SettingsWindow : GlassWindow
                     ToolTip = $"字段：{def.Display}（{def.Key}）",
                     VerticalAlignment = VerticalAlignment.Center,
                 };
-                var widthBox = new TextBox
+                var widthBox = new SpinnerBox
                 {
                     Width = 52,
+                    Min = 6,
+                    Max = 40,
                     Text = (_working.FieldWidths.TryGetValue(def.Key, out var w) ? w : def.DefaultWidth)
                         .ToString(CultureInfo.InvariantCulture),
-                    Style = (Style)FindResource("NumericBoxStyle"),
                     Margin = new Thickness(8, 0, 0, 0),
-                    ToolTip = "列宽（字符单位 6-40）",
+                    ToolTip = "列宽（字符单位 6-40，▲▼/滚轮可调）",
                 };
                 panel.Children.Add(cb);
                 panel.Children.Add(widthBox);
@@ -218,7 +219,7 @@ public partial class SettingsWindow : GlassWindow
         PreviewOpacity(v);
     }
 
-    private void OpacityBox_TextChanged(object sender, TextChangedEventArgs e)
+    private void OpacityBox_ValueChanged(object sender, EventArgs e)
     {
         if (OpacitySlider is null) return;
         if (int.TryParse(OpacityBox.Text, out var v) && v is >= 10 and <= 100)
