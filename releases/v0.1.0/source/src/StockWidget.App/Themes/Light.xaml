@@ -31,4 +31,16 @@
     <SolidColorBrush x:Key="MenuHoverBrush" Color="#26E8590C" />
     <SolidColorBrush x:Key="ToolTipBgBrush" Color="#F8FFFFFF" />
     <SolidColorBrush x:Key="GroupHeaderBrush" Color="#CCE8590C" />
+
+    <!-- 卡片渐变底（顶部高光 + 下部主色） -->
+    <LinearGradientBrush x:Key="CardGradientBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Color="#1AFFFFFF" Offset="0" />
+        <GradientStop Color="#FAFDFDFE" Offset="0.5" />
+        <GradientStop Color="#F1F3F5" Offset="1" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="CardShadowBrush" Color="#2E000000" />
+    <SolidColorBrush x:Key="CardShadowEffectBrush" Color="#55000000" />
+    <SolidColorBrush x:Key="HoverStrokeBrush" Color="#17000000" />
+    <SolidColorBrush x:Key="LockBrush" Color="#63636E" />
+    <SolidColorBrush x:Key="BaselineBrush" Color="#40E8590C" />
 </ResourceDictionary>

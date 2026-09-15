@@ -45,7 +45,10 @@ public partial class SettingsWindow : GlassWindow
         Closing += (_, _) =>
         {
             if (!_saved)
+            {
                 ThemeManager.Instance.Apply(_original.Theme);
+                ThemeManager.Instance.ApplyAccent(_original.AccentColor);
+            }
         };
 
         Loaded += (_, _) => LoadFromSettings();
@@ -91,7 +94,49 @@ public partial class SettingsWindow : GlassWindow
         AutoStartCheck.IsChecked = _working.AutoStart;
         GroupByCategoryCheck.IsChecked = _working.GroupByCategory;
         ShowSparklineCheck.IsChecked = _working.ShowSparkline;
+
+        // 强调色选择
+        BuildAccentPicker();
+
         DataDirText.Text = $"数据库位置：{DbPathResolver.GetDatabasePath()}";
+    }
+
+    /// <summary>根据 0xRRGGBB 生成强调色画笔。</summary>
+    private static System.Windows.Media.Brush AccentRgbBrush(int rgb) =>
+        new System.Windows.Media.SolidColorBrush(
+            System.Windows.Media.Color.FromRgb(
+                (byte)((rgb >> 16) & 0xFF),
+                (byte)((rgb >> 8) & 0xFF),
+                (byte)(rgb & 0xFF)));
+
+    /// <summary>在「通用」标签内构建强调色单选项选择区。</summary>
+    private void BuildAccentPicker()
+    {
+        AccentPanel.Children.Clear();
+        foreach (var pal in AccentPalette.All)
+        {
+            var rb = new System.Windows.Controls.RadioButton
+            {
+                GroupName = "Accent",
+                Tag = pal.Key,
+                IsChecked = string.Equals(_working.AccentColor, pal.Key, StringComparison.OrdinalIgnoreCase),
+                Margin = new Thickness(0, 0, 12, 6),
+                ToolTip = pal.Name,
+                Content = new Border
+                {
+                    Width = 22,
+                    Height = 22,
+                    CornerRadius = new CornerRadius(6),
+                    Background = AccentRgbBrush(pal.AccentRgb),
+                },
+            };
+            rb.Checked += (_, _) =>
+            {
+                _working.AccentColor = (string)rb.Tag;
+                ThemeManager.Instance.ApplyAccent(_working.AccentColor); // 实时预览
+            };
+            AccentPanel.Children.Add(rb);
+        }
     }
 
     private void BuildFieldPanels()
@@ -432,6 +477,7 @@ public partial class SettingsWindow : GlassWindow
         cfg.AutoStart = AutoStartCheck.IsChecked == true;
         cfg.GroupByCategory = GroupByCategoryCheck.IsChecked == true;
         cfg.ShowSparkline = ShowSparklineCheck.IsChecked == true;
+        cfg.AccentColor = _working.AccentColor;
 
         // 字段
         cfg.CustomFields.Clear();

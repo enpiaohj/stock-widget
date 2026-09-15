@@ -61,6 +61,7 @@ public partial class MinuteChartWindow : GlassWindow
             Chart.Baseline = minute.PrevClose ?? _vm.GetPrevClose(_row.Code);
 
             var prices = minute.Points.Select(p => p.Price).ToList();
+            PositionBaseline(prices);
             HighText.Text = $"最高 {prices.Max():0.###}";
             LowText.Text = $"最低 {prices.Min():0.###}";
             TimeText.Text = $"{minute.Date} · 分时";
@@ -71,5 +72,23 @@ public partial class MinuteChartWindow : GlassWindow
         {
             ClosedBadge.Visibility = Visibility.Visible;
         }
+    }
+
+    /// <summary>依据昨收与当日价区间定位基准虚线的 Y 位置。</summary>
+    private void PositionBaseline(List<decimal> prices)
+    {
+        var bl = Chart.Baseline;
+        if (bl is not { } pc || prices.Count < 2 || Chart.ActualHeight <= 0)
+        {
+            BaselineBar.Visibility = Visibility.Collapsed;
+            return;
+        }
+        BaselineBar.Visibility = Visibility.Visible;
+        var mn = prices.Min(); var mx = prices.Max();
+        if (mx == mn) mx += 0.0001m;
+        var ratio = (float)((pc - mn) / (mx - mn));
+        // 与 Sparkline 的坐标映射一致：y = h-2 - ratio*(h-4)；此处取中线定位
+        var top = (Chart.ActualHeight - 2) * (1 - ratio) - 0.5;
+        BaselineBar.Margin = new Thickness(0, Math.Max(0, top), 0, 0);
     }
 }

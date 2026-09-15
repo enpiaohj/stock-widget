@@ -5,11 +5,13 @@ using System.Windows.Input;
 using System.Windows.Controls.Primitives;
 using System.Windows.Interop;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using StockWidget.App.Services;
 using StockWidget.App.ViewModels;
 using StockWidget.Core.Models;
 using StockWidget.Core.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace StockWidget.App.Views;
 
@@ -23,6 +25,8 @@ public partial class MainWindow : GlassWindow
     private readonly DispatcherTimer _posSaveTimer;
     private readonly ToolTip _tip = new() { StaysOpen = false, Placement = PlacementMode.MousePoint };
     private const int HotkeyId = 0xA001;
+    private bool _animatingVisibility;
+    private const double FadeDurationMs = 120;
     private HwndSource? _hwndSource;
 
     // 供 XAML 绑定的行字体（避免与 Window 自带属性重名）
@@ -80,8 +84,13 @@ public partial class MainWindow : GlassWindow
             {
                 RebuildAmountText();
             }
+            if (e.PropertyName is nameof(MainViewModel.StatusText) or nameof(MainViewModel.Settings))
+                LockBadge.Visibility = _vm.Settings.ShowLockedStatus && _vm.Settings.Locked
+                    ? Visibility.Visible : Visibility.Collapsed;
             if (e.PropertyName == nameof(MainViewModel.MarketClosed))
                 MarketClosedBadge.Visibility = _vm.MarketClosed ? Visibility.Visible : Visibility.Collapsed;
+            if (e.PropertyName == nameof(MainViewModel.MarketMoodPct))
+                ((App)Application.Current).UpdateTrayMood(_vm.MarketMoodPct);
         };
 
         SourceInitialized += (_, _) => HookHotkey();
@@ -225,16 +234,17 @@ public partial class MainWindow : GlassWindow
             FontWeight = FontWeights.Bold,
         });
 
-        var total = new Run($"{_vm.TotalAmountText} 亿")
+        var amountRun = new Run($"{_vm.TotalAmountText} 亿")
         {
             Foreground = FlatStrongBrush(),
             FontWeight = FontWeights.Bold,
             FontSize = AmountText.FontSize + 1,
             Cursor = Cursors.Hand,
         };
-        total.MouseLeftButtonUp += (_, _) =>
+        amountRun.MouseLeftButtonUp += (_, _) =>
             ShowTooltip(_vm.YesterdaySummary);
-        inlines.Add(total);
+        Typography.SetNumeralAlignment(amountRun, FontNumeralAlignment.Tabular);
+        inlines.Add(amountRun);
 
         if (!string.IsNullOrEmpty(_vm.AmountDiffText))
         {
@@ -342,13 +352,18 @@ public partial class MainWindow : GlassWindow
         var add = new MenuItem { Header = "➕ 添加股票" };
         add.Click += async (_, _) =>
         {
-            var dlg = new InputDialog("添加股票", "股票代码 / 名称拼音 / 关键字：", "例如：600390、00700、AAPL")
+            var api = App.Services.GetRequiredService<ITencentQuoteApi>();
+            var dlg = new InputDialog(
+                "添加股票",
+                "股票代码 / 名称 / 拼音关键字：",
+                "例如：600390、浦发、pfyh、00700、AAPL",
+                kw => api.SearchSuggestAsync(kw))
             {
                 Owner = this,
             };
             if (dlg.ShowDialog() != true) return;
 
-            var result = await _vm.AddStockAsync(dlg.Input);
+            var result = await _vm.AddStockAsync(dlg.SelectedMatch?.Code ?? dlg.Input);
             switch (result)
             {
                 case AddStockResult.Ok:
@@ -496,17 +511,49 @@ public partial class MainWindow : GlassWindow
         }
     }
 
-    /// <summary>窗口显隐切换（热键 / 托盘 / 双击表头）。</summary>
+    /// <summary>窗口显隐切换（热键 / 托盘 / 双击表头），带 120ms 淡入淡出（不影响用户设置的不透明度）。</summary>
     public void ToggleVisibility()
     {
+        if (_animatingVisibility) return; // 防重入：动画施放期间忽略
+
+        var target = Math.Clamp(_vm.Settings.OpacityPercent, 10, 100) / 100.0;
+
         if (IsVisible)
         {
-            Hide();
+            _animatingVisibility = true;
+            // 淡出后再隐藏
+            var fadeOut = new DoubleAnimation(Opacity, 0, TimeSpan.FromMilliseconds(FadeDurationMs))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseIn },
+            };
+            fadeOut.Completed += (_, _) =>
+            {
+                Hide();
+                BeginAnimation(OpacityProperty, null); // 移除瞬态动画，复位依赖属性
+                Opacity = target; // 复位为目标不透明度，供下次显示用
+                _animatingVisibility = false;
+            };
+            BeginAnimation(OpacityProperty, fadeOut);
         }
         else
         {
+            _animatingVisibility = true;
+            BeginAnimation(OpacityProperty, null); // 确保起始不透明度为 0
+            Opacity = 0;
             Show();
             Activate();
+            // 淡入到用户设置的不透明度
+            var fadeIn = new DoubleAnimation(0, target, TimeSpan.FromMilliseconds(FadeDurationMs))
+            {
+                EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseInOut },
+            };
+            fadeIn.Completed += (_, _) =>
+            {
+                BeginAnimation(OpacityProperty, null); // 移除瞬态动画，稳定为 target
+                Opacity = target; // 最终不透明度与设置一致
+                _animatingVisibility = false;
+            };
+            BeginAnimation(OpacityProperty, fadeIn);
         }
     }
 
