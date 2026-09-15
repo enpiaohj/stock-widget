@@ -82,6 +82,8 @@ public partial class MainWindow : GlassWindow
             }
             if (e.PropertyName == nameof(MainViewModel.MarketClosed))
                 MarketClosedBadge.Visibility = _vm.MarketClosed ? Visibility.Visible : Visibility.Collapsed;
+            if (e.PropertyName == nameof(MainViewModel.MarketMoodPct))
+                ((App)Application.Current).UpdateTrayMood(_vm.MarketMoodPct);
         };
 
         SourceInitialized += (_, _) => HookHotkey();

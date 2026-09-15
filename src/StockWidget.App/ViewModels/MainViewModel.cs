@@ -63,6 +63,9 @@ public partial class MainViewModel : ObservableObject
     /// <summary>休市徽章（周末）。</summary>
     [ObservableProperty] private bool _marketClosed;
 
+    /// <summary>大盘（上证指数 sh000001）当日涨跌幅，用于托盘色点；自选无该指数时为 null。</summary>
+    [ObservableProperty] private decimal? _marketMoodPct;
+
     [ObservableProperty] private double _opacity = 0.8;
 
     [ObservableProperty] private string _hotkeyDisplay = "ctrl+q";
@@ -274,6 +277,10 @@ public partial class MainViewModel : ObservableObject
 
                 MarketClosed = IsMarketClosed(DateTime.Now);
                 UpdateAmountBar(result);
+                // 大盘涨跌 → 托盘色点（仅在自选含上证指数时更新；失败保留旧值不闪烁）
+                var mood = result.Quotes.FirstOrDefault(q =>
+                    string.Equals(q.Code, MainIndexCodes.Shanghai, StringComparison.OrdinalIgnoreCase));
+                MarketMoodPct = mood?.Success == true ? mood.ChangePct : MarketMoodPct;
                 UpdateStatusText();
                 if (_cfg.ShowSparkline)
                     LoadSparklines();
