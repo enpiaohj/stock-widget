@@ -35,7 +35,7 @@
                       FontSize="{Binding RowFontSize, RelativeSource={RelativeSource AncestorType=Window}}"
                       FontStyle="{Binding RowFontStyle, RelativeSource={RelativeSource AncestorType=Window}}"
                       VirtualizingPanel.ScrollUnit="Pixel"
-                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                      ScrollViewer.HorizontalScrollBarVisibility="Auto">
                 <DataGrid.GroupStyle>
                     <GroupStyle>
                         <GroupStyle.ContainerStyle>

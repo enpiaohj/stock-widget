@@ -67,6 +67,9 @@ public partial class MainWindow : GlassWindow
         };
 
         _vm.ColumnsChanged += RebuildColumns;
+        // 行集合变化（初始化 / 导入 / 增删股票）后按内容重算窗口尺寸
+        _vm.Rows.CollectionChanged += (_, _) =>
+            Dispatcher.BeginInvoke(AutoSizeWindow, DispatcherPriority.Loaded);
         _vm.SettingsRequested += OpenSettings;
         _vm.AboutRequested += ShowAbout;
         _vm.QuitRequested += QuitApp;
@@ -178,6 +181,33 @@ public partial class MainWindow : GlassWindow
         if (Grid.Columns[0] is DataGridTemplateColumn first
             && first.CellTemplate?.VisualTree is FrameworkElementFactory ff)
             ff.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
+
+        AutoSizeWindow();
+    }
+
+    /// <summary>
+    /// 按内容自适应窗口尺寸（旧版语义）：宽 = 列宽合计 + 边距；高 = 行数 × 行高 + 表头与量能栏。
+    /// 超出工作区时钳制（此时表格内部滚动兜底），避免列被硬裁剪只见前几列。
+    /// </summary>
+    private void AutoSizeWindow()
+    {
+        double width = 44; // 卡片内边距 + 表格边距
+        foreach (var col in Grid.Columns)
+            width += col.Width.IsAbsolute ? col.Width.Value : 80;
+        var maxW = SystemParameters.WorkArea.Width * 0.95;
+        Width = Math.Clamp(width, MinWidth, maxW);
+
+        var rows = _vm.Rows.Count;
+        var groupCount = _vm.Settings.GroupByCategory && rows > 0
+            ? _vm.Rows.Select(r => r.CategoryName).Distinct().Count()
+            : 0;
+        var height = rows * Grid.RowHeight
+                     + groupCount * 26   // 分组头
+                     + 34                // 列表头
+                     + 40                // 量能栏
+                     + 30;               // 卡片内边距
+        var maxH = SystemParameters.WorkArea.Height - 20;
+        Height = Math.Clamp(height, 240, maxH);
     }
 
     private DataGridTemplateColumn BuildValueColumn(FieldDefinitions.FieldDef def)
@@ -214,12 +244,12 @@ public partial class MainWindow : GlassWindow
         return template;
     }
 
-    /// <summary>共享表头样式：单击排序、双击显隐窗口（旧版行为）。</summary>
+    /// <summary>共享表头样式：继承主题隐式样式（橙色前景等），叠加单击排序与双击显隐。</summary>
     private Style CreateHeaderStyle()
     {
-        var style = new Style(typeof(DataGridColumnHeader));
-        style.Setters.Add(new Setter(FontWeightProperty, FontWeights.Bold));
-        style.Setters.Add(new Setter(CursorProperty, Cursors.Hand));
+        // 必须基于主题隐式样式：否则 Foreground（AccentBrush 橙色）等丢失，
+        // 表头文字回退默认黑色，深色主题下不可见
+        var style = new Style(typeof(DataGridColumnHeader), (Style)FindResource(typeof(DataGridColumnHeader)));
         style.Setters.Add(new EventSetter(DataGridColumnHeader.ClickEvent,
             new RoutedEventHandler(Header_Click)));
         style.Setters.Add(new EventSetter(DataGridColumnHeader.MouseDoubleClickEvent,
