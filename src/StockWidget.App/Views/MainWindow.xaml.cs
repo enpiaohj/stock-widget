@@ -368,14 +368,15 @@ public partial class MainWindow : GlassWindow
     // 行交互
     // ---------------------------
 
-    /// <summary>悬停显示股票信息（原为单击触发）。</summary>
+    /// <summary>
+    /// 悬停显示股票信息：赋给行原生 ToolTip（自动延迟与定位）。
+    /// 不用自绘 Popup 式 ToolTip —— 弹在鼠标点会盖住行，触发 Leave/Enter 循环闪烁并干扰右键。
+    /// </summary>
     private void Row_MouseEnter(object sender, MouseEventArgs e)
     {
-        if (sender is DataGridRow { DataContext: StockRowViewModel row })
-            ShowTooltip($"📈 {row.Current.Name}（{row.CodeDisplay}）");
+        if (sender is DataGridRow gridRow && gridRow.DataContext is StockRowViewModel row)
+            gridRow.ToolTip = $"📈 {row.Current.Name}（{row.CodeDisplay}）";
     }
-
-    private void Row_MouseLeave(object sender, MouseEventArgs e) => _tip.IsOpen = false;
 
     private void Row_MouseDoubleClick(object sender, MouseButtonEventArgs e)
     {

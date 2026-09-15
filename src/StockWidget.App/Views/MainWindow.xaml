@@ -47,7 +47,6 @@
                     <Style TargetType="DataGridRow" BasedOn="{StaticResource {x:Type DataGridRow}}">
                         <Setter Property="Background" Value="{Binding FlashBrush}" />
                         <EventSetter Event="MouseEnter" Handler="Row_MouseEnter" />
-                        <EventSetter Event="MouseLeave" Handler="Row_MouseLeave" />
                         <EventSetter Event="MouseDoubleClick" Handler="Row_MouseDoubleClick" />
                     </Style>
                 </DataGrid.RowStyle>
