@@ -533,14 +533,14 @@ public partial class MainViewModel : ObservableObject
 
         var target = direction switch
         {
-            0 => 0,
+            // 移至顶部：落到第一个非固定股位置（固定股恒居首，否则目标位被占永远失败）
+            0 => ordered.FindIndex(w => !w.IsPinned),
             2 => ordered.Count - 1,
             -1 => idx - 1,
             1 => idx + 1,
             _ => idx,
         };
         if (target < 0 || target >= ordered.Count || target == idx) return false;
-        if (ordered[target].IsPinned && target == 0) return false; // 目标区含固定股头两行时 Clamp
 
         App.WriteCrashLog("Diag", new Exception($"MoveSelected 进入: code={row.Code} dir={direction} pinned={ordered[idx].IsPinned}"));
         if (!_watchlistRepo.Move(row.Code, target)) 
