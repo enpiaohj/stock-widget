@@ -29,7 +29,8 @@ public abstract class GlassWindow : Window
     protected GlassWindow()
     {
         WindowStyle = WindowStyle.None;
-        AllowsTransparency = false;
+        AllowsTransparency = true;   // 真透明：透明度设置整窗 alpha 生效（透出桌面）
+        Background = System.Windows.Media.Brushes.Transparent;
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = true;
         SourceInitialized += (_, _) => ApplyChrome();
@@ -197,10 +198,8 @@ public abstract class GlassWindow : Window
     /// </summary>
     protected virtual void UpdateBackgroundBrush()
     {
-        var app = System.Windows.Application.Current;
-        var key = BackdropEnabled ? "BgBrush" : "BgFallbackBrush";
-        Background = app.Resources[key] as System.Windows.Media.Brush
-                     ?? app.Resources["BgBrush"] as System.Windows.Media.Brush;
+        // 真透明架构：窗口背景保持 Transparent，卡片底色由子窗口 XAML 自行绘制；
+        // 亚克力（系统模糊）不可用时同样由卡片自身底色保证可读性。
     }
 
     [DllImport("dwmapi.dll")]
