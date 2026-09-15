@@ -116,8 +116,8 @@ public sealed class ThemeManager
         var app = Application.Current;
         if (_originalBg is null) return; // 主题字典尚未加载
 
-        // 保底可读：最透时背景仍保留 40% 底色（文字本身不透明），同时保证透明度变化可感知
-        var alpha = 0.40 + 0.60 * (Math.Clamp(percent, 10, 100) / 100.0);
+        // 所见即所得：100=完全不透，10=透 90%（文字本身不透明）
+        var alpha = Math.Clamp(percent, 10, 100) / 100.0;
 
         if (_originalBg is { } bg)
         {
