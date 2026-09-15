@@ -1,7 +1,7 @@
 # 设计文档：StockWidget v1.1 完善计划
 
 > 日期：2026-09-15 ｜ 状态：草案 ｜ 项目：股票小插件（StockWidget）
-> 目标：修复明确缺陷 + 节假日休市识别 + 按名称/拼音添加股票。
+> 目标：修复明确缺陷 + 节假日休市识别 + 按名称/拼音添加股票 + UI 深度优化。
 
 基线：当前 `main`（v1.0.0 已发布）。参考旧版 Python 源码 `D:\AIProjects\stockTool` 与 C# 现有实现。
 
@@ -10,7 +10,7 @@
 ## 1. 背景与目标
 
 C# / WPF（.NET 10）重写版 v1.0.0 已对齐并增强 Python 旧版 P6 UI v1.0.3.10。
-本次在 v1.0.0 层基础上做三个增量，全部为用户已确认方向：
+本次在 v1.0.0 层基础上做四块，全部为用户已确认方向：
 
 1. **修复明确缺陷**（低风险、可感）：
    - 删除模板残留 `src/StockWidget.Core/Class1.cs`（空类，无任何引用）。
@@ -19,6 +19,8 @@ C# / WPF（.NET 10）重写版 v1.0.0 已对齐并增强 Python 旧版 P6 UI v1.
      且全程无行情刷新更新托盘图标 —— 功能名存实亡。
 2. **节假日休市识别**（内置交易日历表 + SQLite 存储，智能抓取）。
 3. **按名称/拼音加股**（腾讯 smartbox 搜索 + 输入框下拉联动实时查询）。
+4. **UI 深度优化**：在现有玻璃拟态自绘卡片架构上做**拟质感拉满**
+   （用户已确认，不启用真亚克力 DWM，保持 Win10/11 一致、零兼容风险）。
 
 ---
 
@@ -168,45 +170,130 @@ public sealed record StockSearchMatch(string Code, string Name, string Market);
 
 ## 5. 影响面与文件
 
-**新增**：
+**新增（Core/业务）**：
 - `StockWidget.Core/Data/Entities/Entities.cs`（追加 `TradingCalendarEntity`）
 - `StockWidget.Core/Services/TradingCalendarService.cs` + `ITradingCalendar`
 - `StockWidget.Core/Services/TradingCalendarSeeder.cs`（内置 2025–2028 日历）
-- `StockWidget.Core/Services/TradingCalendarSeeder.cs` 种子数据文件（可并入 Seeder）
 - `StockWidget.Core/Models/StockSearchMatch.cs`
 - `StockWidget.Core/Services/SmartboxResponseParser.cs`（可并入 TencentQuoteApi）
 - EF Migration（`trading_calendar` 表）
 
-**修改**：
+**新增（UI）**：
+- `StockWidget.App/Services/AccentPalettes.cs`（强调色板定义：5 组 + 派生刷）
+- `StockWidget.App/Themes/AccentThemeManager.cs` 或并入 `ThemeManager`（按强调色派生扁平刷资源）
+
+**修改（Core/业务）**：
 - `StockWidget.Core/Data/StockWidgetDbContext.cs`（`DbSet<TradingCalendarEntity>` + 映射）
 - `StockWidget.Core/Services/TencentQuoteApi.cs`（`SearchSuggestAsync` 实现 + 接口）
 - `StockWidget.Core/ServiceCollectionExtensions.cs`（注册 `ITradingCalendar`）
-- `StockWidget.App/ViewModels/MainViewModel.cs`（休市智能抓取 + `MarketMoodPct`）
-- `StockWidget.App/Views/MainWindow.xaml.cs`（托盘色点订阅 + 添加股票走搜索流程）
+- `StockWidget.Core/Models/AppSettings.cs`（新增 `AccentColor` 设置项）
+- `StockWidget.App/ViewModels/MainViewModel.cs`（休市智能抓取 + `MarketMoodPct` + 强调色应用）
+- `StockWidget.App/Views/MainWindow.xaml.cs`（托盘色点订阅 + 添加股票走搜索流程 + UI 交互）
 - `StockWidget.App/App.xaml.cs`（`UpdateTrayMood` + 首次 `showOverlay` 修正）
 - `StockWidget.App/Views/InputDialog.xaml(.cs)`（可选搜索下拉联动）
 - 删除：`src/StockWidget.Core/Class1.cs`
+
+**修改（UI 文件）**：
+- `MainWindow.xaml`（卡片渐变底、双描边、阴影、锁定徽章、分组头/表头/量能栏细节）
+- `Themes/Dark.xaml` / `Light.xaml`（深化配色 + 新增 `CardGradientBrush`/`CardShadowBrush`/
+  `ChipBrush`/`HoverStrokeBrush` 等资源；强调色派生支持）
+- `Controls.xaml`（表头排序箭头、分组头、量能文字等新样式/触发器）
+- `Views/Sparkline.cs`（面积渐变 + 末点光标）
+- `Views/MinuteChartWindow.xaml`（价格 TabularFigures、基准虚线、当前价横线）
+- `Views/SettingsWindow.xaml(.cs)`（「通用」页强调色选择）
+- `Views/AboutWindow.xaml(.cs)`（版本/图标/链接排版）
+- `ThemeManager.cs`（强调色派生效 + 跟随系统联动）
 
 **测试新增**：
 - `TradingCalendarServiceTests`：法定节假日/调休上班周日/普通周末/普通工作日判定，
   未命中兜底逻辑。
 - `SmartboxResponseParserTests`：中文/拼音/代码关键字解析，含多市场、异常输入。
-- `TencentResponseParserTests` 风格统一（沿用现有 xUnit + 纯静态解析测试）。
+- `AccentPaletteTests`（如抽成纯逻辑）：强调色派生刷、可选色板有效性。
+- 既有 `TencentResponseParserTests` 风格统一（沿用现有 xUnit + 纯静态解析测试）。
 
 ---
 
-## 6. 已知边界 / 不做
+## 6. UI 深度优化（拟质感拉满）
+
+现有 UI 已是统一的玻璃拟态卡片：透明窗口 + 自绘圆角卡片、深/浅/跟随系统三态主题、
+动态资源热切换、红涨绿跌、橙色强调、行闪烁动效。本次在**不改变自绘架构**的前提下，
+从「视觉细节」「主题与调色板」「窗口体验层」「分时/设置/关于细节」四方面做**拟质感拉满**，
+Win10/11 一致，零 DWM 兼容风险。
+
+### 6.1 视觉细节打磨（高响应路）
+
+- **卡片层次**：主卡片背景由纯色 `BgBrush` 改为「径向渐变 + 半透明叠加」，玻璃质感更透气；
+  用 `#26FFFFFF` 顶部高光叠加制造明暗层次（GradientStop 方案，保持 DynamicResource 可切主题）。
+  - 做法：`MainWindow.xaml` 的 Border Background 由 `{DynamicResource BgBrush}`
+    改为 `{DynamicResource CardGradientBrush}`（LinearGradientBrush，两组停止色，深浅主题各一套）。
+- **边框与阴影**：主卡 1px 外框 + 内 1px 高光描边（双 Border 叠加），圆角 12px 保持；
+  启用 `DropShadowEffect`（BlurRadius≈20，Opacity≈0.35，色随主题）替代 Win 默认轻微阴影，
+  悬浮窗更显质感。
+- **行内迷你走势**：`Sparkline` 增加面积渐变填充（折线下淡色渐隐 + 顶部描边），
+  涨/跌使用对应 `UpBrush`/`DownBrush`，区分度更高；末点加圆点光标。
+- **分组头**：由纯色块改为「渐隐底 + 左竖条」样式，与卡片语言统一，分组更醒目不抢戏。
+- **表头**：排序激活时表头文字加粗 + 右上加排序箭头（▲/▼），当前表头仅有 hover、无排序视觉反馈。
+- **量能栏**：金额数字使用等宽变体（`TabularFigures`）避免刷新抖动；增减段保持红/绿加粗。
+- **过渡动效**：窗口 Show/Hide 在显隐时加轻微淡入（Opacity 0→目标 100ms），
+  ToggleVisibility 由直接 Show/Hide 改为 100–150ms 淡入/淡出（线程安全 Dispatcher 动画），
+  连续刷新不打断。
+
+> 注意：`AllowsTransparency=true` 下 WPF 的 `Opacity`/`DropShadowEffect` 正常生效，
+> 阴影需设定在最高层 Border 上而非 Window 本身，避免绘制阴影到透明区域被裁切。
+
+### 6.2 主题与调色板
+
+- **三态主题深/浅各自深化**：
+  - 深色：底色从 `#23232A` 微向冷灰中性偏移，提升可读性；增加 `CardGradientBrush`、
+    `CardShadowBrush`、`ChipBrush`（标签底）、`HoverStrokeBrush` 等新资源。
+  - 浅色：加统一的暖灰背景、加深表头下划线、卡片阴影更轻。
+- **可选中强调色**（新增设置项 `AccentColor`，默认沿用当前橙 `#FFA640`）：
+  - 提供 5 组可选强调色：默认橙、蓝 `#38BDF8`、绿 `#22C55E`、紫 `#A78BFA`、红 `#F43F5E`。
+  - 主题字典中所有强调相关色（AccentBrush / AccentSoftBrush / HeaderLineBrush / GroupHeaderBrush /
+    MenuHoverBrush / FlashUp…）改为由「强调色 + 固定 alpha」派生，选中强调色后整套配色联动刷新。
+  - 设置中心「通用」页新增强调色选择（单选色块组），保存后热切换。
+- **跟随系统**：`system` 主题在深/浅字典间切换已实现，补上强调色随主题字典一并刷新的联动。
+
+### 6.3 窗口体验层
+
+- **主窗口无边框增强**：保留透明自绘，但补充：
+  - 右上角叠加极简「锁定」状态小徽章（`{DynamicResource LockIconBrush}`），锁定用锁形、解锁用开锁形，
+    悬停提示当前状态；复用现有 `ShowLockedStatus` 设置。
+  - 窗口底部拖拽时透明度实时反馈已具备（GlassWindow 拖动 + 右键）；窗口显隐用 6.1 淡入淡出衔接。
+- **托盘到主窗口**：托盘「显示窗口」调用同一 `ToggleVisibility`（带淡入），统一体验。
+- **关于窗口**：补产品名/版本/© 信息排版、GitHub 仓库链接文案、图标展示区，视觉对齐设置中心卡片。
+
+### 6.4 分时图与设置中心细节
+
+- **分时图**：标题栏价格用 TabularFigures 避免跳动；分时图曲线（`Sparkline`）复用 6.1 的面积渐变，
+  增加昨收基准虚线、当前价横线；`ClosedBadge` 与主窗口休市徽章一致。
+- **设置中心**：卡片间间距与分组进一步完善（已是 CardStyle）；预警列表行 hover、Tab 切换轻微过渡；
+  强调色选择区在「通用」Tab 落地。
+
+### 6.5 阻止 / 边界
+
+- **不启用真亚克力 DWM**（用户已确认）：保持 `AllowsTransparency=true` + 自绘圆角卡片，
+  Win10/11 视觉一致、无兼容与性能风险。`WindowChrome` 维持现状。
+- **透明窗口阴影**：若 `DropShadowEffect` 在某些 Win10 合成下边界发虚，回退为「细边框 + 柔和投影」，
+  不影响主题与配色（实现时按实际渲染取舍）。
+- 强调色为**界面色**，不改数据语义色（红涨/绿跌保持，不随强调色变）。
+
+---
+
+## 7. 已知边界 / 不做
 
 - **不新增交易日历管理 UI**：本次仅内置种子 + 服务，管理页后续版本做（YAGNI）。
 - **节假日识别精度取决于内置种子表**：种子覆盖至 2028；之后年份未命中按周末兜底。
 - **名称搜索为提示性**：腾讯 smartbox 为公开接口，字段/响应可能变化，
   解析失败时静默回退为直接代码输入，不影响核心流程。
 - **托盘色点仅在有 `sh000001` 自选时生效**：无该指数则保持原图标。
+- **不启用真亚克力 DWM**：毛玻璃以拟质感拉满实现（见 §6.5），保持零兼容风险。
+- **强调色不改数据涨跌语义色**：红涨绿跌恒为 UpBrush/DownBrush，不随强调色变化。
 - 不进行无关重构，遵循最小必要改动。
 
 ---
 
-## 7. 验证
+## 8. 验证
 
 ```
 dotnet build StockWidget.slnx -c Debug
@@ -215,5 +302,9 @@ dotnet test StockWidget.slnx
   - 托盘图标随大盘涨跌变色
   - 休市日状态栏显示休市徽章且不抓取
   - 添加股票下拉搜索可选并成功添加
+  - 深/浅/跟随系统三态主题切换，强调色切换后整套配色联动
+  - 主窗口（含锁定徽章/量能栏/分组头/走势渐变）在 Win10 与 Win11 下渲染一致
+  - 窗口显隐淡入淡出流畅不卡顿
 ```
+> 运行时验证依赖真实联网与交易日；无法联网/非交易日项目如实标注"未执行"。
 > 运行时验证依赖真实联网与交易日；无法联业/非交易日项目如实标注"未执行"。
