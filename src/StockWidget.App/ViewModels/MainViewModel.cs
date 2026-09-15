@@ -538,7 +538,12 @@ public partial class MainViewModel : ObservableObject
         if (target < 0 || target >= ordered.Count || target == idx) return false;
         if (ordered[target].IsPinned && target == 0) return false; // 目标区含固定股头两行时 Clamp
 
-        if (!_watchlistRepo.Move(row.Code, target)) return false;
+        App.WriteCrashLog("Diag", new Exception($"MoveSelected 进入: code={row.Code} dir={direction} pinned={ordered[idx].IsPinned}"));
+        if (!_watchlistRepo.Move(row.Code, target)) 
+        {
+            App.WriteCrashLog("Diag", new Exception("Repo.Move 返回 false"));
+            return false;
+        }
         App.WriteCrashLog("Diag", new Exception($"Move {row.Code} -> {target} 成功，开始同步视图"));
 
         _watchlist = _watchlistRepo.GetAll();
@@ -583,15 +588,10 @@ public partial class MainViewModel : ObservableObject
         return _cfg.Locked;
     }
 
-    /// <summary>主题循环切换：深色 → 浅色 → 跟随系统。</summary>
+    /// <summary>主题切换：深色 ↔ 浅色直接互换（每次点击必然变化，不再经过 system 出现"看起来没切"）。</summary>
     public string ToggleTheme()
     {
-        _cfg.Theme = _cfg.Theme switch
-        {
-            "dark" => "light",
-            "light" => "system",
-            _ => "dark",
-        };
+        _cfg.Theme = _cfg.Theme is "dark" ? "light" : "dark";
         _settingsService.Save(_cfg);
         ThemeManager.Instance.Apply(_cfg.Theme);
         return _cfg.Theme;

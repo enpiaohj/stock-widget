@@ -544,6 +544,7 @@ public partial class MainWindow : GlassWindow
         var item = new MenuItem { Header = header };
         item.Click += (_, _) =>
         {
+            App.WriteCrashLog("Diag", new Exception($"菜单点击: {header}，SelectedRow={(_vm.SelectedRow?.Code ?? "null")}"));
             if (_vm.SelectedRow is null)
             {
                 MessageBox.Show(this, "请先选中要调整的股票。", "调整顺序",
