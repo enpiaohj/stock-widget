@@ -183,7 +183,7 @@ public partial class MainWindow : GlassWindow
             var sparkCol = new DataGridTemplateColumn
             {
                 Header = "走势",
-                Width = 104,
+                Width = 124,
                 IsReadOnly = true,
                 CellTemplate = BuildSparklineTemplate(),
             };

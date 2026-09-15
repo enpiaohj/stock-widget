@@ -37,19 +37,12 @@ public sealed class ThemeManager
         ApplyDictionary(effective);
     }
 
-    private ResourceDictionary? _darkDictCache;
-    private ResourceDictionary? _lightDictCache;
-
     private void ApplyDictionary(string effective)
     {
         var app = Application.Current;
 
-        // 主题字典缓存：首次加载后复用实例，切换主题不再重新解析 BAML（提速）
-        if (effective == "dark")
-            _darkDictCache ??= new ResourceDictionary { Source = new Uri("Themes/Dark.xaml", UriKind.Relative) };
-        else
-            _lightDictCache ??= new ResourceDictionary { Source = new Uri("Themes/Light.xaml", UriKind.Relative) };
-        var dict = (effective == "dark" ? _darkDictCache : _lightDictCache)!;
+        // 每次重新加载字典（曾尝试缓存实例复用，WPF 下有状态残留导致切换异常，回退）
+        var dict = new ResourceDictionary { Source = new Uri($"Themes/{(effective == "dark" ? "Dark" : "Light")}.xaml", UriKind.Relative) };
 
         // 替换主题字典（Controls.xaml 保留在原位）
         var old = app.Resources.MergedDictionaries
