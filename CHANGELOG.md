@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-09-15
+
+首个 C# / WPF 重写正式版本。
+
 ### Added
 
 - C# / WPF (.NET 10) 全新重写，功能对齐 Python 旧版（PySide6 UI v1.0.3.10）并全面增强
