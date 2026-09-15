@@ -25,10 +25,6 @@
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!-- 顶部拖拽条（锁定时禁用） -->
-            <Border x:Name="DragStrip" Grid.Row="0" Height="8" Background="Transparent"
-                    MouseLeftButtonDown="DragStrip_MouseLeftButtonDown" />
-
             <!-- 行情表 -->
             <DataGrid x:Name="Grid" Grid.Row="1"
                       ItemsSource="{Binding Rows}"
@@ -57,8 +53,7 @@
             </DataGrid>
 
             <!-- 底部量能栏 -->
-            <Grid Grid.Row="2" Margin="2,4,2,2" Background="Transparent"
-                  MouseLeftButtonDown="DragStrip_MouseLeftButtonDown">
+            <Grid Grid.Row="2" Margin="2,4,2,2" Background="Transparent">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />

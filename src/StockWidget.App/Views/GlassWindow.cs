@@ -1,6 +1,11 @@
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
+using System.Windows.Media.Media3D;
 using System.Windows.Shell;
 
 namespace StockWidget.App.Views;
@@ -28,7 +33,46 @@ public abstract class GlassWindow : Window
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = true;
         SourceInitialized += (_, _) => ApplyChrome();
+        PreviewMouseLeftButtonDown += OnPreviewDragDown;
     }
+
+    /// <summary>整窗背景拖拽：在非交互控件的空白区域按住左键移动窗口。</summary>
+    private void OnPreviewDragDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.Handled || e.ButtonState != MouseButtonState.Pressed) return;
+        if (!CanDragWindow(e.OriginalSource)) return;
+        try
+        {
+            DragMove();
+            OnWindowDragged();
+        }
+        catch
+        {
+            // 窗口非活动等状态下 DragMove 抛异常，忽略
+        }
+    }
+
+    /// <summary>
+    /// 命中交互控件（按钮/输入/滑杆/表格单元格/表头/滚动条/页签等）时不拖动。
+    /// 子类可覆写扩展规则（返回 false 阻止拖动）。
+    /// </summary>
+    protected virtual bool CanDragWindow(object source)
+    {
+        for (var d = source as DependencyObject; d is not null; d = GetVisualParent(d))
+        {
+            if (d is Button or TextBox or ComboBox or ComboBoxItem or Slider or CheckBox
+                or RadioButton or Thumb or ScrollBar or TabItem or ListBox or ListBoxItem
+                or DataGridCell or DataGridColumnHeader or DataGridRow or ScrollViewer)
+                return false;
+        }
+        return true;
+    }
+
+    /// <summary>拖动结束后子类可覆写以持久化窗口位置。</summary>
+    protected virtual void OnWindowDragged() { }
+
+    private static DependencyObject? GetVisualParent(DependencyObject d) =>
+        d is Visual or Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d);
 
     private void ApplyChrome()
     {

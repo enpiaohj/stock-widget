@@ -7,8 +7,7 @@
                    WindowStartupLocation="CenterOwner"
                    ResizeMode="NoResize"
                    ShowInTaskbar="False"
-                   Background="{DynamicResource BgBrush}"
-                   MouseLeftButtonDown="Window_MouseLeftButtonDown">
+                   Background="{DynamicResource BgBrush}">
     <StackPanel Margin="24,20">
         <TextBlock x:Name="TitleText" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource FgBrush}"
                    HorizontalAlignment="Center" />

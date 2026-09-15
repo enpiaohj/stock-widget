@@ -524,20 +524,14 @@ public partial class MainWindow : GlassWindow
     // 拖拽 / 显隐
     // ---------------------------
 
-    private void DragStrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    protected override bool CanDragWindow(object source)
     {
-        if (_vm.Settings.Locked) return;
-        if (e.ButtonState != MouseButtonState.Pressed) return;
-        try
-        {
-            DragMove();
-            _vm.SaveWindowPosition(Left, Top);
-        }
-        catch
-        {
-            // DragMove 在非拖拽状态下抛异常，忽略
-        }
+        if (_vm.Settings.Locked) return false;
+        return base.CanDragWindow(source);
     }
+
+    /// <summary>拖动结束后持久化窗口位置（替换旧 DragStrip 的保存）。</summary>
+    protected override void OnWindowDragged() => _vm.SaveWindowPosition(Left, Top);
 
     /// <summary>窗口显隐切换（热键 / 托盘 / 双击表头），带 120ms 淡入淡出（不影响用户设置的不透明度）。</summary>
     public void ToggleVisibility()
