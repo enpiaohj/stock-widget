@@ -547,18 +547,29 @@ public partial class MainViewModel : ObservableObject
         App.WriteCrashLog("Diag", new Exception($"Move {row.Code} -> {target} 成功，开始同步视图"));
 
         _watchlist = _watchlistRepo.GetAll();
-        // 同步行 VM 持有的条目（视图 CustomSort 依据 Info.SortOrder），否则移动被旧顺序重排吞掉
+        // 同步行 VM 持有的条目（保持 Info 与库内一致）
         var itemsByCode = _watchlist.ToDictionary(w => w.Code, StringComparer.OrdinalIgnoreCase);
         foreach (var r in Rows)
             if (itemsByCode.TryGetValue(r.Code, out var item)) r.UpdateItem(item);
-        // 手动调整顺序 = 退出排序模式（否则排序立即覆盖移动结果，表现为"上移下移失效"）
+        // 手动调整顺序 = 退出排序模式
         if (_cfg.SortField is not null)
         {
             _cfg.SortField = null;
             _cfg.SortDescending = false;
             _settingsService.Save(_cfg);
         }
-        ApplyViewStructure();
+        // 视图切回"集合顺序"模式，并按新顺序物理移动行——立即生效，不依赖 CustomSort 刷新时机
+        if (RowsView is ListCollectionView lcv)
+            lcv.CustomSort = null;
+        for (var i = 0; i < _watchlist.Count && i < Rows.Count; i++)
+        {
+            var rowVm = Rows.FirstOrDefault(r => r.Code == _watchlist[i].Code);
+            if (rowVm is not null)
+            {
+                var cur = Rows.IndexOf(rowVm);
+                if (cur != i) Rows.Move(cur, i);
+            }
+        }
         return true;
     }
 
