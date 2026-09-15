@@ -114,7 +114,12 @@ public sealed class ThemeManager
     public void ApplyOpacity(int percent)
     {
         var app = Application.Current;
-        if (_originalBg is null) return; // 主题字典尚未加载
+        if (_originalBg is null)
+        {
+            App.WriteCrashLog("Diag", new Exception("ApplyOpacity: _originalBg 为 null，跳过"));
+            return;
+        }
+        App.WriteCrashLog("Diag", new Exception($"ApplyOpacity: pct={percent}"));
 
         // 所见即所得：100=完全不透，10=透 90%（文字本身不透明）
         var alpha = Math.Clamp(percent, 10, 100) / 100.0;

@@ -170,7 +170,7 @@ public partial class SettingsWindow : GlassWindow
                 };
                 var widthBox = new SpinnerBox
                 {
-                    Width = 52,
+                    Width = 64,
                     Min = 6,
                     Max = 40,
                     Text = (_working.FieldWidths.TryGetValue(def.Key, out var w) ? w : def.DefaultWidth)
@@ -213,6 +213,7 @@ public partial class SettingsWindow : GlassWindow
 
     private void Opacity_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
+        App.WriteCrashLog("Diag", new Exception($"滑块 ValueChanged: {e.NewValue}"));
         if (OpacityBox is null) return;
         var v = (int)Math.Round(e.NewValue);
         OpacityBox.Text = v.ToString(CultureInfo.InvariantCulture);
@@ -221,6 +222,7 @@ public partial class SettingsWindow : GlassWindow
 
     private void OpacityBox_ValueChanged(object sender, EventArgs e)
     {
+        App.WriteCrashLog("Diag", new Exception($"输入框 ValueChanged: {OpacityBox.Text}"));
         if (OpacitySlider is null) return;
         if (int.TryParse(OpacityBox.Text, out var v) && v is >= 10 and <= 100)
         {
@@ -232,6 +234,7 @@ public partial class SettingsWindow : GlassWindow
 
     private void PreviewOpacity(int percent)
     {
+        App.WriteCrashLog("Diag", new Exception($"PreviewOpacity: {percent}"));
         // 实时预览与保存后同一机制：仅背景 alpha 变化，文字恒清晰
         ThemeManager.Instance.ApplyOpacity(percent);
     }

@@ -523,6 +523,7 @@ public partial class MainViewModel : ObservableObject
         if (ordered[target].IsPinned && target == 0) return false; // 目标区含固定股头两行时 Clamp
 
         if (!_watchlistRepo.Move(row.Code, target)) return false;
+        App.WriteCrashLog("Diag", new Exception($"Move {row.Code} -> {target} 成功，开始同步视图"));
 
         _watchlist = _watchlistRepo.GetAll();
         // 同步行 VM 持有的条目（视图 CustomSort 依据 Info.SortOrder），否则移动被旧顺序重排吞掉

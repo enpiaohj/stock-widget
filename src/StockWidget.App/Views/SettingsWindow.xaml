@@ -48,7 +48,7 @@
                                     <TextBlock Text="窗口透明度" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
                                     <Slider x:Name="OpacitySlider" Grid.Column="1" Minimum="10" Maximum="100"
                                             ValueChanged="Opacity_ValueChanged" VerticalAlignment="Center" />
-                                    <views:SpinnerBox x:Name="OpacityBox" Grid.Column="2" Width="68" HorizontalAlignment="Left"
+                                    <views:SpinnerBox x:Name="OpacityBox" Grid.Column="2" Width="80" HorizontalAlignment="Left"
                                               Margin="10,0,0,0" Min="10" Max="100" Step="10" ValueChanged="OpacityBox_ValueChanged" />
                                 </Grid>
                                 <Grid Margin="0,4">
@@ -60,7 +60,7 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="字体" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
                                     <ComboBox x:Name="FontBox" Grid.Column="1" MaxDropDownHeight="240" />
-                                    <views:SpinnerBox x:Name="FontSizeBox" Grid.Column="2" Width="80" Margin="8,0,0,0"
+                                    <views:SpinnerBox x:Name="FontSizeBox" Grid.Column="2" Width="88" Margin="8,0,0,0"
                                              Min="6" Max="28" />
                                     <CheckBox x:Name="ItalicCheck" Grid.Column="3" Content="斜体"
                                               Margin="12,0,0,0" VerticalAlignment="Center" />
