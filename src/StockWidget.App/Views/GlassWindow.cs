@@ -40,6 +40,17 @@ public abstract class GlassWindow : Window
     private Point? _dragStartPoint;
     private bool _dragStartAllowed;
 
+    /// <summary>行间虚线分隔可见性（行情主窗口按 ShowDividers 配置驱动，其他窗口默认隐藏）。</summary>
+    public static readonly DependencyProperty RowDividerVisibilityProperty = DependencyProperty.Register(
+        nameof(RowDividerVisibility), typeof(Visibility), typeof(GlassWindow),
+        new PropertyMetadata(Visibility.Collapsed));
+
+    public Visibility RowDividerVisibility
+    {
+        get => (Visibility)GetValue(RowDividerVisibilityProperty);
+        set => SetValue(RowDividerVisibilityProperty, value);
+    }
+
     /// <summary>
     /// 整窗拖拽（对齐旧版语义）：按下任意非交互区域（含表格行）记录起点；
     /// 位移超过系统阈值才 DragMove —— 轻点仍触发行选择 / tooltip / 双击，拖动两不冲突。

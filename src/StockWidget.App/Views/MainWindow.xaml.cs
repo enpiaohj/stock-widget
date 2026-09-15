@@ -67,6 +67,12 @@ public partial class MainWindow : GlassWindow
         };
 
         _vm.ColumnsChanged += RebuildColumns;
+        // 右键哪行就选中哪行（右键菜单"调整顺序/删除"直接作用于所点行）
+        Grid.PreviewMouseRightButtonDown += (_, e) =>
+        {
+            if (ItemsControl.ContainerFromElement(Grid, e.OriginalSource as DependencyObject) is DataGridRow row)
+                Grid.SelectedItem = row.DataContext;
+        };
         // 行集合变化（初始化 / 导入 / 增删股票）后按内容重算窗口尺寸
         _vm.Rows.CollectionChanged += (_, _) =>
             Dispatcher.BeginInvoke(AutoSizeWindow, DispatcherPriority.Loaded);
@@ -146,11 +152,8 @@ public partial class MainWindow : GlassWindow
         var cfg = _vm.Settings;
         Grid.Columns.Clear();
 
-        // 行间分隔线（旧版定义了配置但未实现，本版落实）
-        Grid.GridLinesVisibility = cfg.ShowDividers
-            ? DataGridGridLinesVisibility.Horizontal
-            : DataGridGridLinesVisibility.None;
-        Grid.HorizontalGridLinesBrush = (Brush)Application.Current.Resources["DividerBrush"];
+        // 行间分隔虚线（行模板内自绘，GridLinesVisibility 在重模板化行上不渲染）
+        RowDividerVisibility = cfg.ShowDividers ? Visibility.Visible : Visibility.Collapsed;
 
         var headerStyle = CreateHeaderStyle();
 
@@ -320,7 +323,7 @@ public partial class MainWindow : GlassWindow
 
         var status = new Run($"  [{_vm.StatusText}]")
         {
-            Foreground = SubBrush(),
+            Foreground = StatusBrush(),
             FontSize = cfg.FontSize - 1,
             Cursor = Cursors.Hand,
         };
@@ -347,6 +350,7 @@ public partial class MainWindow : GlassWindow
     private Brush UpBrush() => (Brush)Application.Current.Resources["UpBrush"];
     private Brush DownBrush() => (Brush)Application.Current.Resources["DownBrush"];
     private Brush SubBrush() => (Brush)Application.Current.Resources["SubFgBrush"];
+    private Brush StatusBrush() => (Brush)Application.Current.Resources["StatusBrush"];
     private Brush FlatStrongBrush() => (Brush)Application.Current.Resources["FlatBrush"];
 
     // ---------------------------

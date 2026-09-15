@@ -519,8 +519,14 @@ public partial class MainViewModel : ObservableObject
         if (!_watchlistRepo.Move(row.Code, target)) return false;
 
         _watchlist = _watchlistRepo.GetAll();
-        if (_cfg.SortField is null) ReorderRows();
-        else ApplyViewStructure();
+        // 手动调整顺序 = 退出排序模式（否则排序立即覆盖移动结果，表现为"上移下移失效"）
+        if (_cfg.SortField is not null)
+        {
+            _cfg.SortField = null;
+            _cfg.SortDescending = false;
+            _settingsService.Save(_cfg);
+        }
+        ReorderRows();
         return true;
     }
 

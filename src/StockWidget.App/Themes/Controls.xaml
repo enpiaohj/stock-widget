@@ -492,11 +492,19 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="DataGridRow">
-                    <Border x:Name="rowBd" Background="{TemplateBinding Background}"
-                            CornerRadius="6" Padding="4,0">
-                        <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"
-                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
-                    </Border>
+                    <Grid>
+                        <Border x:Name="rowBd" Background="{TemplateBinding Background}"
+                                CornerRadius="6" Padding="4,0">
+                            <DataGridCellsPresenter ItemsPanel="{TemplateBinding ItemsPanel}"
+                                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                        </Border>
+                        <!-- 行间虚线分隔（可见性由窗口 RowDividerVisibility / ShowDividers 配置驱动） -->
+                        <Line X1="0" Y1="0" X2="1" Y2="0" Stretch="Fill"
+                              VerticalAlignment="Bottom" Margin="2,0,2,0"
+                              Stroke="{DynamicResource RowLineBrush}" StrokeThickness="1"
+                              StrokeDashArray="2 3"
+                              Visibility="{Binding RowDividerVisibility, RelativeSource={RelativeSource AncestorType=views:GlassWindow}}" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="rowBd" Property="Background" Value="{DynamicResource RowHoverBrush}" />
