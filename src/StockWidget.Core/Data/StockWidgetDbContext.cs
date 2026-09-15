@@ -11,6 +11,7 @@ public sealed class StockWidgetDbContext(DbContextOptions<StockWidgetDbContext> 
     public DbSet<DailyAmountEntity> DailyAmountHistory => Set<DailyAmountEntity>();
     public DbSet<QuoteSnapshotEntity> QuoteSnapshots => Set<QuoteSnapshotEntity>();
     public DbSet<AlertRuleEntity> AlertRules => Set<AlertRuleEntity>();
+    public DbSet<TradingCalendarEntity> TradingCalendar => Set<TradingCalendarEntity>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -45,6 +46,13 @@ public sealed class StockWidgetDbContext(DbContextOptions<StockWidgetDbContext> 
         {
             e.ToTable("alert_rules");
             e.HasIndex(x => x.Code);
+        });
+
+        mb.Entity<TradingCalendarEntity>(e =>
+        {
+            e.ToTable("trading_calendar");
+            e.HasKey(x => x.Date);
+            e.Property(x => x.Remark).HasDefaultValue("");
         });
     }
 }
