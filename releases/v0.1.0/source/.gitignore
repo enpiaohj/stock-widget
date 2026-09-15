@@ -23,7 +23,7 @@ mono_crash.*
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
-#[Rr]eleases/ 已改为精细化：快照 source/ 与 CHANGELOG.md 入库，仅排除 exe 产物（见文件尾部）
+[Rr]eleases/
 x64/
 x86/
 [Ww][Ii][Nn]32/
@@ -481,5 +481,6 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 
-# 本地 Release 快照中的二进制产物：上传 GitHub Releases 交付，不进 Git History
-releases/**/*.exe
+# 快照中排除运行时数据目录与库
+/data/
+*.db
