@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using StockWidget.App.ViewModels;
+using StockWidget.Core.Data.Entities;
 using StockWidget.Core.Models;
 
 namespace StockWidget.App.Views;
@@ -11,6 +12,7 @@ public partial class MinuteChartWindow : GlassWindow
 {
     private readonly MainViewModel _vm;
     private StockRowViewModel _row;
+    private bool _showingKline;
 
     public MinuteChartWindow(MainViewModel vm, StockRowViewModel row)
     {
@@ -33,6 +35,7 @@ public partial class MinuteChartWindow : GlassWindow
         _row = row;
         LoadHeader(row);
         _ = LoadAsync();
+        if (_showingKline) _ = LoadKlinesAsync(); // 日K页保持展示时同步刷新另一只股票的日K
         Activate();
     }
 
@@ -59,6 +62,54 @@ public partial class MinuteChartWindow : GlassWindow
     }
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void TabMinute_Click(object sender, RoutedEventArgs e)
+    {
+        _showingKline = false;
+        TabMinute.IsChecked = true;
+        TabKline.IsChecked = false;
+        MinutePanel.Visibility = Visibility.Visible;
+        KlinePanel.Visibility = Visibility.Collapsed;
+    }
+
+    private void TabKline_Click(object sender, RoutedEventArgs e)
+    {
+        _showingKline = true;
+        TabKline.IsChecked = true;
+        TabMinute.IsChecked = false;
+        MinutePanel.Visibility = Visibility.Collapsed;
+        KlinePanel.Visibility = Visibility.Visible;
+        _ = LoadKlinesAsync();
+    }
+
+    /// <summary>后台加载日K并计算区间涨跌标签。</summary>
+    private async Task LoadKlinesAsync()
+    {
+        try
+        {
+            var code = _row.Code;
+            // DB 查询不放 UI 线程
+            var rows = await Task.Run(() => _vm.GetKlines(code, 250));
+            KlineChart.Klines = rows;
+            RangeTextK.Text = BuildRangeText(rows);
+        }
+        catch
+        {
+            RangeTextK.Text = "日K数据加载失败";
+        }
+    }
+
+    /// <summary>近 5/20/60/250 日涨跌幅（最新收盘 / N日前收盘 - 1；根数不足显示 —）。</summary>
+    private static string BuildRangeText(IReadOnlyList<DailyKlineEntity> rows)
+    {
+        string Part(int n)
+        {
+            if (rows.Count <= n || rows[^(n + 1)].Close == 0m) return $"近{n}日：—";
+            var chg = (rows[^1].Close / rows[^(n + 1)].Close - 1m) * 100m;
+            return $"近{n}日：{chg:+0.##;-0.##}%";
+        }
+        return string.Join("  ", Part(5), Part(20), Part(60), Part(250));
+    }
 
     private async Task LoadAsync()
     {

@@ -110,3 +110,24 @@ public sealed class TradingCalendarEntity
     /// <summary>备注（如"春节假期" / "调休上班"）。</summary>
     public string Remark { get; set; } = "";
 }
+
+/// <summary>daily_kline 表：日K线（每股每日一根，收盘归档）。</summary>
+public sealed class DailyKlineEntity
+{
+    /// <summary>规范化代码（联合主键）。</summary>
+    public string Code { get; set; } = "";
+
+    /// <summary>交易日期 yyyy-MM-dd（联合主键）。</summary>
+    public string Date { get; set; } = "";
+
+    public decimal Open { get; set; }
+    public decimal High { get; set; }
+    public decimal Low { get; set; }
+    public decimal Close { get; set; }
+
+    /// <summary>成交量（手，腾讯口径）。</summary>
+    public decimal Volume { get; set; }
+
+    /// <summary>成交额（万元，腾讯口径）。</summary>
+    public decimal Amount { get; set; }
+}

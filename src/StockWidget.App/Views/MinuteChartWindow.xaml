@@ -7,8 +7,43 @@
                    WindowStartupLocation="CenterOwner"
                    ResizeMode="NoResize" ShowInTaskbar="False"
                    Background="{DynamicResource BgBrush}">
+    <views:GlassWindow.Resources>
+        <!-- 页签按钮：选中用强调色底 -->
+        <Style x:Key="TabStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{DynamicResource ControlBgBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </views:GlassWindow.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -32,7 +67,15 @@
                     Margin="0,0,-6,0" Click="Close_Click" VerticalAlignment="Center" />
         </Grid>
 
-        <Border Grid.Row="1" Background="{DynamicResource CardBrush}" CornerRadius="10" Margin="0,12,0,0">
+        <!-- 分时 / 日K 页签 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0">
+            <ToggleButton x:Name="TabMinute" Content="分时" IsChecked="True" Width="60"
+                          Padding="0,4" Style="{StaticResource TabStyle}" Click="TabMinute_Click" />
+            <ToggleButton x:Name="TabKline" Content="日K" Width="60" Padding="0,4"
+                          Margin="6,0,0,0" Style="{StaticResource TabStyle}" Click="TabKline_Click" />
+        </StackPanel>
+
+        <Border x:Name="MinutePanel" Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="10" Margin="0,12,0,0">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -53,7 +96,21 @@
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="2" x:Name="PrevCloseText" FontSize="11" Foreground="{DynamicResource SubFgBrush}"
+        <!-- 日K页（初始隐藏） -->
+        <Border x:Name="KlinePanel" Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="10"
+                Margin="0,12,0,0" Visibility="Collapsed">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="RangeTextK" Grid.Row="0" FontSize="11"
+                           Foreground="{DynamicResource SubFgBrush}" />
+                <views:KLineChart x:Name="KlineChart" Grid.Row="1" Margin="0,4" />
+            </Grid>
+        </Border>
+
+        <TextBlock Grid.Row="3" x:Name="PrevCloseText" FontSize="11" Foreground="{DynamicResource SubFgBrush}"
                    Margin="0,8,0,0" HorizontalAlignment="Right" />
     </Grid>
 </views:GlassWindow>

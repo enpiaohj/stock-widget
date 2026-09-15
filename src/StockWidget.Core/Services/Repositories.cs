@@ -147,6 +147,8 @@ public interface IAmountHistoryRepository
     DailyAmountEntity? GetLatestBefore(DateTime date);
     /// <summary>全部历史（升序）。</summary>
     List<DailyAmountEntity> GetAll();
+    /// <summary>最近 N 个有记录的交易日（按日期升序返回）。</summary>
+    List<DailyAmountEntity> GetRecent(int days);
     /// <summary>清理早于指定日期的记录，返回删除条数。</summary>
     int PruneOlderThan(DateTime date);
 }
@@ -190,6 +192,16 @@ public sealed class AmountHistoryRepository(IDbContextFactory<StockWidgetDbConte
     {
         using var db = dbFactory.CreateDbContext();
         return db.DailyAmountHistory.OrderBy(x => x.Date).ToList();
+    }
+
+    public List<DailyAmountEntity> GetRecent(int days)
+    {
+        using var db = dbFactory.CreateDbContext();
+        return db.DailyAmountHistory.AsNoTracking()
+            .OrderByDescending(d => d.Date)
+            .Take(days)
+            .OrderBy(d => d.Date)
+            .ToList();
     }
 
     public int PruneOlderThan(DateTime date)
@@ -327,5 +339,70 @@ public sealed class AlertRepository(IDbContextFactory<StockWidgetDbContext> dbFa
     {
         using var db = dbFactory.CreateDbContext();
         return db.AlertRules.Any(x => x.Code == code);
+    }
+}
+
+// ---------------------------
+// 日K线仓储（按 Code+Date 联合主键）
+// ---------------------------
+public interface IDailyKlineRepository
+{
+    /// <summary>批量 upsert（按 Code+Date 存在则覆盖）。</summary>
+    void UpsertRange(IEnumerable<DailyKlineEntity> klines);
+
+    /// <summary>今日（DateTime.Today）已归档的代码集合。</summary>
+    HashSet<string> GetArchivedCodesToday();
+
+    /// <summary>某代码最近 N 根日K，按日期升序返回。</summary>
+    List<DailyKlineEntity> GetByCode(string code, int days);
+}
+
+public sealed class DailyKlineRepository(IDbContextFactory<StockWidgetDbContext> dbFactory) : IDailyKlineRepository
+{
+    public void UpsertRange(IEnumerable<DailyKlineEntity> klines)
+    {
+        var list = klines.ToList();
+        if (list.Count == 0) return;
+        using var db = dbFactory.CreateDbContext();
+        var codes = list.Select(k => k.Code).Distinct().ToList();
+        var dates = list.Select(k => k.Date).Distinct().ToList();
+        // 按涉及范围粗筛后在内存中精确匹配（避免 EF 无法翻译组合键 Contains）
+        var existing = db.DailyKlines
+            .Where(k => codes.Contains(k.Code) && dates.Contains(k.Date))
+            .AsEnumerable()
+            .Where(k => list.Any(x => x.Code == k.Code && x.Date == k.Date))
+            .ToDictionary(k => (k.Code, k.Date));
+        foreach (var k in list)
+        {
+            if (existing.TryGetValue((k.Code, k.Date), out var row))
+            {
+                row.Open = k.Open; row.High = k.High; row.Low = k.Low; row.Close = k.Close;
+                row.Volume = k.Volume; row.Amount = k.Amount;
+            }
+            else
+            {
+                db.DailyKlines.Add(k);
+            }
+        }
+        db.SaveChanges();
+    }
+
+    public HashSet<string> GetArchivedCodesToday()
+    {
+        using var db = dbFactory.CreateDbContext();
+        var today = DateTime.Today.ToString("yyyy-MM-dd");
+        return db.DailyKlines.Where(k => k.Date == today)
+            .Select(k => k.Code).ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    public List<DailyKlineEntity> GetByCode(string code, int days)
+    {
+        using var db = dbFactory.CreateDbContext();
+        return db.DailyKlines.AsNoTracking()
+            .Where(k => k.Code == code)
+            .OrderByDescending(k => k.Date)
+            .Take(days)
+            .OrderBy(k => k.Date)
+            .ToList();
     }
 }

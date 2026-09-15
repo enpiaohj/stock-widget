@@ -8,6 +8,7 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using StockWidget.App.Services;
+using StockWidget.Core.Data.Entities;
 using StockWidget.Core.Models;
 using StockWidget.Core.Services;
 
@@ -31,6 +32,9 @@ public partial class MainViewModel : ObservableObject
     private readonly IAlertRepository _alertRepo;
     private readonly IQuoteSnapshotRepository _snapshotRepo;
     private readonly ITradingCalendar _tradingCalendar;
+    private readonly IKlineArchiver _klineArchiver;
+    private readonly IDailyKlineRepository _klineRepo;
+    private readonly IAmountHistoryRepository _amountHistoryRepo;
 
     private readonly DispatcherTimer _refreshTimer;
     private readonly Dispatcher _dispatcher = Dispatcher.CurrentDispatcher;
@@ -105,6 +109,9 @@ public partial class MainViewModel : ObservableObject
     /// <summary>窗口显隐切换请求（热键 / 双击表头 / 托盘）。</summary>
     public event Action? VisibilityToggleRequested;
 
+    /// <summary>请求打开成交额趋势窗口。</summary>
+    public event Action? AmountTrendRequested;
+
     public MainViewModel(
         ISettingsService settingsService,
         IWatchlistRepository watchlistRepo,
@@ -112,7 +119,10 @@ public partial class MainViewModel : ObservableObject
         ITencentQuoteApi api,
         IAlertRepository alertRepo,
         IQuoteSnapshotRepository snapshotRepo,
-        ITradingCalendar tradingCalendar)
+        ITradingCalendar tradingCalendar,
+        IKlineArchiver klineArchiver,
+        IDailyKlineRepository klineRepo,
+        IAmountHistoryRepository amountHistoryRepo)
     {
         _settingsService = settingsService;
         _watchlistRepo = watchlistRepo;
@@ -121,6 +131,9 @@ public partial class MainViewModel : ObservableObject
         _alertRepo = alertRepo;
         _snapshotRepo = snapshotRepo;
         _tradingCalendar = tradingCalendar;
+        _klineArchiver = klineArchiver;
+        _klineRepo = klineRepo;
+        _amountHistoryRepo = amountHistoryRepo;
 
         _refreshTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(5000) };
         _refreshTimer.Tick += async (_, _) => await RefreshAsync();
@@ -318,6 +331,11 @@ public partial class MainViewModel : ObservableObject
 
             if (result.TriggeredAlerts.Count > 0)
                 AlertsTriggered?.Invoke(result.TriggeredAlerts);
+
+            // 收盘归档：交易日 15:05 后首个刷新落库（后台执行避免阻塞 UI；幂等可重试）
+            var archivedQuotes = result.Quotes;
+            var now = DateTime.Now;
+            _ = Task.Run(() => _klineArchiver.TryArchive(archivedQuotes, now));
         }
         catch (Exception)
         {
@@ -449,6 +467,12 @@ public partial class MainViewModel : ObservableObject
 
     /// <summary>取某只股票的分时数据（分时弹窗）。</summary>
     public Task<MinuteLineData?> GetMinuteLineAsync(string code) => _api.FetchMinuteLineAsync(code);
+
+    /// <summary>取某代码最近 N 根日K（供 K 线页，调用方需在后台线程调用）。</summary>
+    public List<DailyKlineEntity> GetKlines(string code, int days) => _klineRepo.GetByCode(code, days);
+
+    /// <summary>取最近 N 个交易日成交额（供趋势窗口，调用方需在后台线程调用）。</summary>
+    public List<DailyAmountEntity> GetRecentAmounts(int days) => _amountHistoryRepo.GetRecent(days);
 
     /// <summary>取某只股票当日快照价格序列（分时数据不可用时的回退）。</summary>
     public List<decimal> GetTodaySnapshots(string code)
@@ -590,6 +614,8 @@ public partial class MainViewModel : ObservableObject
     public void RequestVisibilityToggle() => VisibilityToggleRequested?.Invoke();
 
     public void RequestMinute(StockRowViewModel row) => MinuteRequested?.Invoke(row);
+
+    public void RequestAmountTrend() => AmountTrendRequested?.Invoke();
 
     [RelayCommand]
     private void RefreshStatusText() => UpdateStatusText();
