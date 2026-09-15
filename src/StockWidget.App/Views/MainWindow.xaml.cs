@@ -183,7 +183,7 @@ public partial class MainWindow : GlassWindow
             var sparkCol = new DataGridTemplateColumn
             {
                 Header = "走势",
-                Width = 84,
+                Width = 104,
                 IsReadOnly = true,
                 CellTemplate = BuildSparklineTemplate(),
             };
@@ -249,6 +249,7 @@ public partial class MainWindow : GlassWindow
     {
         var factory = new FrameworkElementFactory(typeof(Sparkline));
         factory.SetValue(FrameworkElement.HeightProperty, 18d);
+        factory.SetValue(FrameworkElement.MarginProperty, new Thickness(10, 2, 0, 2)); // 与振幅列保持间距
         factory.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Right);
         factory.SetBinding(Sparkline.ValuesProperty,
             new System.Windows.Data.Binding(nameof(StockRowViewModel.SparkValues)));
