@@ -170,7 +170,7 @@ public partial class SettingsWindow : GlassWindow
                 };
                 var widthBox = new SpinnerBox
                 {
-                    Width = 64,
+                    Width = 80,
                     Min = 6,
                     Max = 40,
                     Text = (_working.FieldWidths.TryGetValue(def.Key, out var w) ? w : def.DefaultWidth)

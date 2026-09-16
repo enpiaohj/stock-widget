@@ -22,6 +22,8 @@ public sealed class ThemeManager
 
     public string CurrentEffectiveTheme { get; private set; } = "dark";
 
+    private bool _dictionariesInitialized;
+
     /// <summary>应用主题（settings.Theme：dark / light / system）。</summary>
     public void Apply(string themeSetting)
     {
@@ -31,7 +33,8 @@ public sealed class ThemeManager
             "light" => "light",
             _ => IsSystemDark() ? "dark" : "light",
         };
-        if (effective == CurrentEffectiveTheme && Application.Current.Resources.MergedDictionaries.Count > 0)
+        // 首次调用必须实际加载字典：否则原始刷缓存(_originalBg)永远为空，透明度链路失效
+        if (_dictionariesInitialized && effective == CurrentEffectiveTheme)
             return;
 
         ApplyDictionary(effective);
@@ -57,6 +60,7 @@ public sealed class ThemeManager
         _originalGradient = dict["CardGradientBrush"] as LinearGradientBrush;
 
         CurrentEffectiveTheme = effective;
+        _dictionariesInitialized = true;
 
         foreach (Window w in app.Windows)
         {
