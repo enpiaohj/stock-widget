@@ -4,7 +4,7 @@
 
 - C# / WPF (.NET 10) 桌面股票行情悬浮窗，从 Python/PySide6 旧版（`D:\AIProjects\stockTool`，最终版 v1.0.3.10）重写。
 - 需求基线：旧版全部功能 + 桌面体验包 / 表格增强包 / 分时迷你走势图增强 + 本地 SQLite 数据库存储。
-- 数据源：腾讯行情 `qt.gtimg.cn`（GBK 编码）；分时：腾讯分时接口。
+- 数据源：腾讯行情 `qt.gtimg.cn`（GBK 编码）；分时：`web.ifzq.gtimg.cn` 分时接口；历史日K：`web.ifzq.gtimg.cn` fqkline（前复权）；AI 分析：DeepSeek（OpenAI 兼容协议，Base URL / Model 可配置）。
 - UI：无边框悬浮窗，深色 / 浅色 / 跟随系统三态主题，现代玻璃拟态风格。
 - 领域逻辑放 `StockWidget.Core`（零 UI 依赖），界面放 `StockWidget.App`，测试放 `StockWidget.Tests`。
 
@@ -36,6 +36,10 @@
 - WPF 线程模型：UI 更新必须在 UI 线程（Dispatcher），网络 IO 全部异步（async/await），禁止 `.Result` / `.Wait()` 死锁写法。
 - 全局热键用 Win32 `RegisterHotKey`，不要引入低级键盘钩子。
 - 通知用托盘气泡（`ShowBalloonTip`，Win10+ 自动渲染为 Toast），不引入 Windows Toolkit 通知包。
+- AI 分析（v0.3.0+）：服务在 `Core/Services/Ai/`，入口 `IAiAnalysisService`；本地数据负责"事实"，AI 只负责"解释"，不得让模型生成行情事实。
+- API Key 仅存 DPAPI（`ProtectedData.CurrentUser`）加密密文（`AiSettings.ApiKeyEncrypted`），禁止明文入库 / 进日志 / 进异常消息；`ai_debug.log` 仅 DEBUG 编译写入，且不得包含 Key 与请求头。
+- AI 分析缓存 Key 必须绑定行情数据版本（代码 + 最后K线日 + 最新收盘 + 最新成交量 + 模型），"重新分析"强制刷新。
+- 分组 / 分类显示名与色板、市场固定分类色（`Category*Brush`）与用户强调色（`AccentBrush`）是两套独立资源，修改主题时不得混用。
 
 ## 常用命令
 
