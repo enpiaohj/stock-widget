@@ -127,23 +127,33 @@ public sealed class MinuteChart : FrameworkElement
                 new Rect(slot * slotW + slotW * 0.1, h - bh, barW, bh));
         }
 
-        // 左轴=价格（昨收±幅度），右轴=百分比（0% 在中央虚线处），量区标量值——同花顺参数
+        // 左轴=价格（昨收±幅度 + 当日最高/最低，重叠去重），右轴=百分比（0% 中央）——同花顺参数
         var axisBrush = T("SubFgBrush");
         var devPct = maxDev / pc * 100m;
-        DrawAxisText(dc, Formatted(maxP), 2, 0, TextAlignment.Left, T("UpBrush"));
-        DrawAxisText(dc, Formatted(pc), 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Left, axisBrush);
-        DrawAxisText(dc, Formatted(high), 2, Math.Clamp(Y(high) - 7, 0, priceH - 14), TextAlignment.Left, T("UpBrush"));
-        DrawAxisText(dc, Formatted(low), 2, Math.Clamp(Y(low) - 7, 0, priceH - 14), TextAlignment.Left, T("DownBrush"));
-        DrawAxisText(dc, Formatted(minP), 2, priceH - 14, TextAlignment.Left, T("DownBrush"));
+        var labels = new List<(double Y, string Text, Brush B)>();
+        void AddLabel(double y, string text, Brush b)
+        {
+            y = Math.Clamp(y, 0, priceH - 14);
+            foreach (var (oy, _, _) in labels)
+                if (Math.Abs(oy - y) < 12) return; // 重叠去重
+            labels.Add((y, text, b));
+        }
+        AddLabel(0, Formatted(maxP), T("UpBrush"));
+        AddLabel(Y(pc) - 7, Formatted(pc), axisBrush);
+        AddLabel(Y(high) - 7, Formatted(high), T("UpBrush"));
+        AddLabel(Y(low) - 7, Formatted(low), T("DownBrush"));
+        AddLabel(priceH - 14, Formatted(minP), T("DownBrush"));
+        foreach (var (y, text, b) in labels)
+            DrawAxisText(dc, text, 2, y, TextAlignment.Left, b);
         DrawAxisText(dc, $"+{devPct:0.0#}%", w - 2, 0, TextAlignment.Right, T("UpBrush"));
         DrawAxisText(dc, "0.00%", w - 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Right, axisBrush);
         DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
-        // 量能数值：量区左上显示当前（最新一分钟）成交量
-        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, volTop + 2, TextAlignment.Left, axisBrush);
 
-        // 底部时间轴：09:30 / 11:30-13:00 / 15:00
+
+        // 底部时间轴：当前量 / 09:30 / 11:30-13:00 / 15:00（量值与时间对齐）
         var timeBrush = T("SubFgBrush");
-        DrawAxisText(dc, "09:30", 0, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
+        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
+        DrawAxisText(dc, "09:30", 96, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
         DrawAxisText(dc, "11:30/13:00", w / 2, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Center, timeBrush);
         DrawAxisText(dc, "15:00", w, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Right, timeBrush);
 
