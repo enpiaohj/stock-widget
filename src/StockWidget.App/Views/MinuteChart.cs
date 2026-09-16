@@ -90,12 +90,20 @@ public sealed class MinuteChart : FrameworkElement
         // 价格折线（白色，同花顺分时线）
         var linePen = new Pen(Brushes.White, 1.5);
         linePen.Freeze();
+        // 全天 241 个分钟槽位（上午121+下午120）：按时间映射 x，未到时间右侧留白
+        var slotW = w / TotalSlots;
         var geo = new StreamGeometry();
         using (var ctx = geo.Open())
         {
-            ctx.BeginFigure(new Point(0, Y(prices[0])), false, false);
-            for (var i = 1; i < prices.Length; i++)
-                ctx.LineTo(new Point(i * w / (prices.Length - 1), Y(prices[i])), true, false);
+            var started = false;
+            for (var i = 0; i < points.Count; i++)
+            {
+                var slot = SlotOf(points[i].Time);
+                if (slot < 0) continue;
+                var x = (slot + 0.5) * slotW;
+                if (!started) { ctx.BeginFigure(new Point(x, Y(prices[i])), false, false); started = true; }
+                else ctx.LineTo(new Point(x, Y(prices[i])), true, false);
+            }
         }
         geo.Freeze();
         dc.DrawGeometry(null, linePen, geo);
@@ -104,17 +112,18 @@ public sealed class MinuteChart : FrameworkElement
         var upBrush = T("UpBrush");
         var downBrush = T("DownBrush");
         var maxVol = Math.Max(1m, points.Max(p => p.Volume));
-        var barW = Math.Max(1d, w / points.Count);
+        var barW = Math.Max(1d, slotW * 0.8);
         for (var i = 0; i < points.Count; i++)
         {
             var pt = points[i];
-            if (pt.Volume <= 0) continue;
+            var slot = SlotOf(pt.Time);
+            if (pt.Volume <= 0 || slot < 0) continue;
             var up = i == 0
                 ? pc is { } p0 ? pt.Price >= p0 : true
                 : pt.Price >= points[i - 1].Price;
             var bh = (double)(pt.Volume / maxVol) * (volH - 2);
             dc.DrawRectangle(up ? upBrush : downBrush, null,
-                new Rect(i * barW, h - bh, Math.Max(1, barW * 0.8), bh));
+                new Rect(slot * slotW + slotW * 0.1, h - bh, barW, bh));
         }
 
         // 右侧价格轴：最高 / 昨收 / 最低
@@ -137,6 +146,27 @@ public sealed class MinuteChart : FrameworkElement
         DrawAxisText(dc, "15:00", w, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Right, timeBrush);
 
         static string Formatted(decimal v) => v.ToString("0.##", CultureInfo.CurrentCulture);
+    }
+
+    /// <summary>分时全天槽位数：上午 121 分钟（9:30-11:30）+ 下午 120 分钟（13:00-15:00）。</summary>
+    public const int TotalSlots = 241;
+
+    /// <summary>"HHmm" → 全天槽位（0..240）；解析失败返回 -1。</summary>
+    private static int SlotOf(string time)
+    {
+        if (string.IsNullOrEmpty(time) || time.Length < 4 || !int.TryParse(time, out var t)) return -1;
+        var mins = t / 100 * 60 + t % 100;
+        if (mins is >= 570 and <= 690) return mins - 570;         // 上午 9:30-11:30
+        if (mins is >= 780 and <= 900) return 121 + (mins - 780); // 下午 13:00-15:00
+        return -1;
+    }
+
+    /// <summary>槽位索引 → "HHmm"（快照回退分支构造时间用）。</summary>
+    public static string SlotTimeOf(int index)
+    {
+        var slot = Math.Clamp(index, 0, TotalSlots - 1);
+        var mins = slot <= 120 ? 570 + slot : 780 + (slot - 121);
+        return (mins / 60 * 100 + mins % 60).ToString(CultureInfo.InvariantCulture);
     }
 
     private static void DrawAxisText(DrawingContext dc, string text, double x, double y,

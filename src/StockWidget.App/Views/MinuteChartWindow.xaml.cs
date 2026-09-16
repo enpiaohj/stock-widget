@@ -128,7 +128,7 @@ public partial class MinuteChartWindow : GlassWindow
                 var snapshots = await Task.Run(() => _vm.GetTodaySnapshots(_row.Code));
                 if (snapshots.Count >= 2)
                 {
-                    Chart.Points = snapshots.Select((p, i) => new MinutePoint($"{i:0000}", p, 0m)).ToList();
+                    Chart.Points = snapshots.Select((p, i) => new MinutePoint(MinuteChart.SlotTimeOf(i), p, 0m)).ToList();
                     Chart.PrevClose = _vm.GetPrevClose(_row.Code);
                     ClosedBadge.Visibility = Visibility.Collapsed;
                 }
