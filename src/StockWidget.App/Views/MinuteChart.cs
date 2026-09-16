@@ -132,13 +132,14 @@ public sealed class MinuteChart : FrameworkElement
         var devPct = maxDev / pc * 100m;
         DrawAxisText(dc, Formatted(maxP), 2, 0, TextAlignment.Left, T("UpBrush"));
         DrawAxisText(dc, Formatted(pc), 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, Formatted(high), 2, Math.Clamp(Y(high) - 7, 0, priceH - 14), TextAlignment.Left, T("UpBrush"));
+        DrawAxisText(dc, Formatted(low), 2, Math.Clamp(Y(low) - 7, 0, priceH - 14), TextAlignment.Left, T("DownBrush"));
         DrawAxisText(dc, Formatted(minP), 2, priceH - 14, TextAlignment.Left, T("DownBrush"));
         DrawAxisText(dc, $"+{devPct:0.0#}%", w - 2, 0, TextAlignment.Right, T("UpBrush"));
         DrawAxisText(dc, "0.00%", w - 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Right, axisBrush);
         DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
-        // 量能数值：量区左上最大分钟量、左下最新一分钟量
-        DrawAxisText(dc, $"最大量 {Math.Max(1m, points.Max(p => p.Volume)):N0}", 2, volTop + 2, TextAlignment.Left, axisBrush);
-        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, h - 16, TextAlignment.Left, axisBrush);
+        // 量能数值：量区左上显示当前（最新一分钟）成交量
+        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, volTop + 2, TextAlignment.Left, axisBrush);
 
         // 底部时间轴：09:30 / 11:30-13:00 / 15:00
         var timeBrush = T("SubFgBrush");
