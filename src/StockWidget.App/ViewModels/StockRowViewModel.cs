@@ -128,7 +128,12 @@ public partial class StockRowViewModel : ObservableObject
     private CellValue BuildCell(string fieldKey)
     {
         if (!Current.Success)
-            return new CellValue(Info.Name.Length > 0 ? Info.Name : "-", "fail");
+        {
+            // 首刷成功前不渲染占位符：仅名称列显示自选名，其余列留白等真实行情填充
+            return fieldKey == "name"
+                ? new CellValue(Info.Name, "fail")
+                : new CellValue("", "plain");
+        }
 
         var rowTone = RowTone;
 

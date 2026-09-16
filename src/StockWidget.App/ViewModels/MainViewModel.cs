@@ -54,8 +54,8 @@ public partial class MainViewModel : ObservableObject
     // 量能栏与状态（旧版底部成交额栏）
     // ---------------------------
 
-    /// <summary>今日沪深两市总成交额（亿）。</summary>
-    [ObservableProperty] private string _totalAmountText = "--.--";
+    /// <summary>今日沪深两市总成交额（亿）；空 = 尚无实际数据，底栏回退状态文本。</summary>
+    [ObservableProperty] private string _totalAmountText = "";
 
     /// <summary>较上一交易日增量 / 缩量描述。</summary>
     [ObservableProperty] private string _amountDiffText = "";
