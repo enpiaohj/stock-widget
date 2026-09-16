@@ -58,11 +58,12 @@ public sealed class MinuteChart : FrameworkElement
         var high = prices.Max();
         var low = prices.Min();
 
-        // 价格区间包含昨收，保证基线落在价格区内
-        var pc = PrevClose;
-        var maxP = pc is { } p1 ? Math.Max(high, p1) : high;
-        var minP = pc is { } p2 ? Math.Min(low, p2) : low;
-        if (maxP <= minP) { maxP += 0.0001m; minP -= 0.0001m; }
+        // 同花顺规则：昨收虚线固定在价格区中央（=0%），上下幅度对称（取最大偏离）
+        var pc = PrevClose ?? prices[0];
+        var maxDev = Math.Max(Math.Abs(high - pc), Math.Abs(low - pc));
+        if (maxDev <= 0) maxDev = pc * 0.01m + 0.0001m;
+        var maxP = pc + maxDev;
+        var minP = pc - maxDev;
         var range = maxP - minP;
 
         double Y(decimal p) => priceH - gridPad - (double)((p - minP) / range) * (priceH - gridPad * 2);
@@ -126,18 +127,18 @@ public sealed class MinuteChart : FrameworkElement
                 new Rect(slot * slotW + slotW * 0.1, h - bh, barW, bh));
         }
 
-        // 右侧价格轴：最高 / 昨收 / 最低
+        // 左轴=价格（昨收±幅度），右轴=百分比（0% 在中央虚线处），量区标量值——同花顺参数
         var axisBrush = T("SubFgBrush");
-        DrawAxisText(dc, Formatted(high), w - 2, 0, TextAlignment.Right, axisBrush);
-        DrawAxisText(dc, Formatted(low), w - 2, priceH - 14, TextAlignment.Right, axisBrush);
-        if (pc is { } pcVal)
-        {
-            // 昨收标签按其相对当日区间位置红/绿着色
-            var pcUp = pcVal >= (minP + maxP) / 2m;
-            DrawAxisText(dc, Formatted(pcVal), w - 2,
-                Math.Clamp(Y(pcVal) - 7, 0, priceH - 14), TextAlignment.Right,
-                pcUp ? upBrush : downBrush);
-        }
+        var devPct = maxDev / pc * 100m;
+        DrawAxisText(dc, Formatted(maxP), 2, 0, TextAlignment.Left, T("UpBrush"));
+        DrawAxisText(dc, Formatted(pc), 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, Formatted(minP), 2, priceH - 14, TextAlignment.Left, T("DownBrush"));
+        DrawAxisText(dc, $"+{devPct:0.0#}%", w - 2, 0, TextAlignment.Right, T("UpBrush"));
+        DrawAxisText(dc, "0.00%", w - 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Right, axisBrush);
+        DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
+        // 量能数值：量区左上最大分钟量、左下最新一分钟量
+        DrawAxisText(dc, $"最大量 {Math.Max(1m, points.Max(p => p.Volume)):N0}", 2, volTop + 2, TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, h - 16, TextAlignment.Left, axisBrush);
 
         // 底部时间轴：09:30 / 11:30-13:00 / 15:00
         var timeBrush = T("SubFgBrush");
