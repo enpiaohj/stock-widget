@@ -12,7 +12,7 @@ public sealed class AppSettings
     public int WindowY { get; set; } = 100;
 
     /// <summary>窗口不透明度百分比（10–100），旧版为 1–10 的整数，导入时 ×10。</summary>
-    public int OpacityPercent { get; set; } = 80;
+    public int OpacityPercent { get; set; } = 100;
 
     // ---------- 外观 ----------
     /// <summary>dark / light / system。</summary>
