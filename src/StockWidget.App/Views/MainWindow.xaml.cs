@@ -229,6 +229,9 @@ public partial class MainWindow : GlassWindow
                      + rowH;             // 底部预留一行股票位置
         var maxH = SystemParameters.WorkArea.Height - 10;
         Height = Math.Clamp(height, 240, maxH);
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
+            App.WriteCrashLog("Diag", new Exception(
+                $"AutoSize: rows={rows} rowH={Grid.RowHeight} calc={height} set={Height} actual={ActualHeight} gridActual={Grid.ActualHeight}")));
     }
 
     private DataGridTemplateColumn BuildValueColumn(FieldDefinitions.FieldDef def)
