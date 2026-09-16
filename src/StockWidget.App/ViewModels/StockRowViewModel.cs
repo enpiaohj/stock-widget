@@ -61,7 +61,7 @@ public partial class StockRowViewModel : ObservableObject
     /// <summary>通用更新通知：刷新所有索引器绑定。</summary>
     public void NotifyAllCells() => OnPropertyChanged("Item[]");
 
-    /// <summary>分组名（指数 / ETF / 个股 / 港股 / 美股）。</summary>
+    /// <summary>分组名（指数 / A股 / ETF / 港股 / 美股）。</summary>
     public string CategoryName => Info.Category switch
     {
         StockCategory.Index => "指数",
