@@ -128,24 +128,15 @@ public sealed class MinuteChart : FrameworkElement
                 new Rect(slot * slotW + slotW * 0.1, h - 18 - bh, barW, bh));
         }
 
-        // 左轴=价格（昨收±幅度 + 当日最高/最低，重叠去重），右轴=百分比（0% 中央）——同花顺参数
+        // 左轴=固定 5 档等距价格（昨收±幅度、±半幅、昨收）——数量恒定分布均匀，不随股价绝对值变化
         var axisBrush = T("SubFgBrush");
         var devPct = maxDev / pc * 100m;
-        var labels = new List<(double Y, string Text, Brush B)>();
-        void AddLabel(double y, string text, Brush b)
-        {
-            y = Math.Clamp(y, 0, priceH - 14);
-            foreach (var (oy, _, _) in labels)
-                if (Math.Abs(oy - y) < 12) return; // 重叠去重
-            labels.Add((y, text, b));
-        }
-        AddLabel(0, Formatted(maxP), T("UpBrush"));
-        AddLabel(Y(pc) - 7, Formatted(pc), axisBrush);
-        AddLabel(Y(high) - 7, Formatted(high), T("UpBrush"));
-        AddLabel(Y(low) - 7, Formatted(low), T("DownBrush"));
-        AddLabel(priceH - 14, Formatted(minP), T("DownBrush"));
-        foreach (var (y, text, b) in labels)
-            DrawAxisText(dc, text, 2, y, TextAlignment.Left, b);
+        var priceY = priceH - 14;
+        DrawAxisText(dc, Formatted(pc + maxDev), 2, 0, TextAlignment.Left, T("UpBrush"));
+        DrawAxisText(dc, Formatted(pc + maxDev / 2), 2, (priceY) / 4 - 7, TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, Formatted(pc), 2, priceY / 2 - 7, TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, Formatted(pc - maxDev / 2), 2, priceY * 3 / 4 - 7, TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, Formatted(pc - maxDev), 2, priceY, TextAlignment.Left, T("DownBrush"));
         DrawAxisText(dc, $"+{devPct:0.0#}%", w - 2, 0, TextAlignment.Right, T("UpBrush"));
         DrawAxisText(dc, "0.00%", w - 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Right, axisBrush);
         DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
