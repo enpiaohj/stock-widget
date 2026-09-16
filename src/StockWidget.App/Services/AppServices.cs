@@ -19,6 +19,8 @@ public sealed class ThemeManager
 
     private SolidColorBrush? _originalBg;
     private LinearGradientBrush? _originalGradient;
+    private string? _lastAccentKey;
+    private int _lastOpacityPercent = 100;
 
     public string CurrentEffectiveTheme { get; private set; } = "dark";
 
@@ -63,6 +65,12 @@ public sealed class ThemeManager
         CurrentEffectiveTheme = effective;
         _dictionariesInitialized = true;
 
+        // 关键：顶层覆盖刷（强调色/透明度）不随字典切换自动重算，必须重放
+        // 否则切换主题后窗口仍显示旧主题背景（表现为"切换主题无效"）
+        if (_lastAccentKey is not null)
+            ApplyAccentInternal(_lastAccentKey);
+        ApplyOpacityInternal(_lastOpacityPercent);
+
         foreach (Window w in app.Windows)
         {
             if (w is GlassWindow gw)
@@ -76,8 +84,11 @@ public sealed class ThemeManager
     /// 按强调色 key 派生并覆盖 Application.Resources 中强调相关刷（本地资源优先于主题字典同名 key）。
     /// 默认橙时清空覆盖，回落到主题字典自身的强调色。
     /// </summary>
-    public void ApplyAccent(string accentKey)
+    public void ApplyAccent(string accentKey) => ApplyAccentInternal(accentKey);
+
+    private void ApplyAccentInternal(string accentKey)
     {
+        _lastAccentKey = accentKey;
         var app = Application.Current;
         var pal = AccentPalette.FromKey(accentKey);
 
@@ -116,8 +127,11 @@ public sealed class ThemeManager
     /// 按不透明度百分比（10–100）调整窗口底色 alpha：仅背景透桌面，文字/数据保持不透明清晰可读。
     /// 100 = 完全不透明；数值越小越透。从主题原始刷克隆，多次应用不累积。
     /// </summary>
-    public void ApplyOpacity(int percent)
+    public void ApplyOpacity(int percent) => ApplyOpacityInternal(Math.Clamp(percent, 10, 100));
+
+    private void ApplyOpacityInternal(int percent)
     {
+        _lastOpacityPercent = percent;
         var app = Application.Current;
         if (_originalBg is null)
         {
