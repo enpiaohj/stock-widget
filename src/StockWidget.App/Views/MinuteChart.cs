@@ -50,8 +50,7 @@ public sealed class MinuteChart : FrameworkElement
         // 布局：价格区 74%，间隔带 4%（时间标签），量能区 22% 减底部 18px（量值行）
         var priceH = h * 0.74;
         var volTop = h * 0.78;
-        var timeY = h - 16;            // 量值行贴窗口最底
-        var volH = h - volTop - 18;
+        var volH = h - volTop;
         const double gridPad = 2;
 
         var prices = new decimal[points.Count];
@@ -66,6 +65,7 @@ public sealed class MinuteChart : FrameworkElement
         var maxP = pc + maxDev;
         var minP = pc - maxDev;
         var range = maxP - minP;
+        var devPct = maxDev / pc * 100m; // 右轴百分比幅度
 
         double Y(decimal p) => priceH - gridPad - (double)((p - minP) / range) * (priceH - gridPad * 2);
 
@@ -128,26 +128,21 @@ public sealed class MinuteChart : FrameworkElement
                 new Rect(slot * slotW + slotW * 0.1, h - 18 - bh, barW, bh));
         }
 
-        // 左轴=固定 5 档等距价格（昨收±幅度、±半幅、昨收）——数量恒定分布均匀，不随股价绝对值变化
+        // 左轴=3 档：当日最高（上）/ 昨收 0%（中）/ 当日最低（下），标在真实位置
         var axisBrush = T("SubFgBrush");
-        var devPct = maxDev / pc * 100m;
-        var priceY = priceH - 14;
-        DrawAxisText(dc, Formatted(pc + maxDev), 2, 0, TextAlignment.Left, T("UpBrush"));
-        DrawAxisText(dc, Formatted(pc + maxDev / 2), 2, (priceY) / 4 - 7, TextAlignment.Left, axisBrush);
-        DrawAxisText(dc, Formatted(pc), 2, priceY / 2 - 7, TextAlignment.Left, axisBrush);
-        DrawAxisText(dc, Formatted(pc - maxDev / 2), 2, priceY * 3 / 4 - 7, TextAlignment.Left, axisBrush);
-        DrawAxisText(dc, Formatted(pc - maxDev), 2, priceY, TextAlignment.Left, T("DownBrush"));
+        DrawAxisText(dc, Formatted(high), 2, Math.Clamp(Y(high) - 7, 0, priceH - 14), TextAlignment.Left, T("UpBrush"));
+        DrawAxisText(dc, Formatted(pc), 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Left, axisBrush);
+        DrawAxisText(dc, Formatted(low), 2, Math.Clamp(Y(low) - 7, 0, priceH - 14), TextAlignment.Left, T("DownBrush"));
         DrawAxisText(dc, $"+{devPct:0.0#}%", w - 2, 0, TextAlignment.Right, T("UpBrush"));
         DrawAxisText(dc, "0.00%", w - 2, Math.Clamp(Y(pc) - 7, 0, priceH - 14), TextAlignment.Right, axisBrush);
         DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
 
 
-        // 时间标签回原位（价格区与量区间隔带）；量值单独贴窗口最底
+        // 时间标签（价格区与量区间隔带）；量值由窗口底行显示（与日期文字同行）
         var timeBrush = T("SubFgBrush");
         DrawAxisText(dc, "09:30", 0, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
         DrawAxisText(dc, "11:30/13:00", w / 2, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Center, timeBrush);
         DrawAxisText(dc, "15:00", w, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Right, timeBrush);
-        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, timeY, TextAlignment.Left, timeBrush);
 
         static string Formatted(decimal v) => v.ToString("0.##", CultureInfo.CurrentCulture);
     }

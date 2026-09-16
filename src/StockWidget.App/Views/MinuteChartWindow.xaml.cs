@@ -139,8 +139,7 @@ public partial class MinuteChartWindow : GlassWindow
             Chart.PrevClose = minute.PrevClose ?? _vm.GetPrevClose(_row.Code);
 
             TimeText.Text = $"{minute.Date} · 分时";
-            if (minute.PrevClose is { } pc)
-                PrevCloseText.Text = $"昨收 {pc:0.###} · 虚线为分时基线";
+            VolumeText.Text = $"量 {minute.Points[^1].Volume:N0}";
         }
         catch
         {

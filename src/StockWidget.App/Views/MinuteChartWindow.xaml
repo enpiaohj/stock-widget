@@ -84,10 +84,7 @@
                 </Grid.RowDefinitions>
                 <TextBlock x:Name="InfoText" FontSize="10" Foreground="{DynamicResource SubFgBrush}" />
                 <views:MinuteChart x:Name="Chart" Grid.Row="1" Margin="0,4" />
-                <Grid Grid.Row="2">
-                    <TextBlock x:Name="TimeText" FontSize="10" Foreground="{DynamicResource SubFgBrush}"
-                               HorizontalAlignment="Right" />
-                </Grid>
+                <Grid Grid.Row="2" />
             </Grid>
         </Border>
 
@@ -105,7 +102,10 @@
             </Grid>
         </Border>
 
-        <TextBlock Grid.Row="3" x:Name="PrevCloseText" FontSize="11" Foreground="{DynamicResource SubFgBrush}"
+        <Grid Grid.Row="3">
+            <TextBlock x:Name="VolumeText" FontSize="11" Foreground="{DynamicResource SubFgBrush}" HorizontalAlignment="Left" />
+            <TextBlock x:Name="TimeText" FontSize="11" Foreground="{DynamicResource SubFgBrush}"
                    Margin="0,8,0,0" HorizontalAlignment="Right" />
+        </Grid>
     </Grid>
 </views:GlassWindow>
