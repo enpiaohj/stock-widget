@@ -228,7 +228,7 @@ public partial class MainWindow : GlassWindow
                      + 8                 // 边距
                      + rowH;             // 底部预留一行股票位置
         var maxH = SystemParameters.WorkArea.Height - 10;
-        Height = Math.Clamp(height, 240, maxH);
+        Height = Math.Clamp(height, 170, maxH); // 空列表/行少时不再强制 240 减少空白
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
             App.WriteCrashLog("Diag", new Exception(
                 $"AutoSize: rows={rows} rowH={Grid.RowHeight} calc={height} set={Height} actual={ActualHeight} gridActual={Grid.ActualHeight}")));
