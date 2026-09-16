@@ -16,9 +16,8 @@
             <Border Background="{DynamicResource CardGradientBrush}"
                     BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1"
                     CornerRadius="0">
-                <Border CornerRadius="0" Background="{DynamicResource HoverStrokeBrush}"
-                        BorderThickness="1" BorderBrush="{DynamicResource HoverStrokeBrush}"
-                        Opacity="0.6" Margin="1">
+                <Border CornerRadius="0" Background="Transparent"
+                        BorderThickness="0" Margin="0">
                     <Grid Margin="8,6,8,6" Background="Transparent">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
