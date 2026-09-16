@@ -205,11 +205,11 @@ public partial class MainWindow : GlassWindow
     /// 按内容自适应窗口尺寸（旧版语义）：宽 = 列宽合计 + 边距；高 = 行数 × 行高 + 表头与量能栏。
     /// 超出工作区时钳制（此时表格内部滚动兜底），避免列被硬裁剪只见前几列。
     /// </summary>
-    /// <summary>分组头总高（未开启分组为 0）。</summary>
-    private double groupCountHeader() =>
-        _vm.Settings.GroupByCategory && _vm.Rows.Count > 0
-            ? _vm.Rows.Select(r => r.CategoryName).Distinct().Count() * 26
-            : 0;
+    /// <summary>
+    /// 分组头总高。当前分组仅作用于排序（分类聚集），未挂 GroupDescription 渲染分组头，
+    /// 故占位为 0——此前按分类数预留 26px/组 导致底部大片空白。将来实现分组头渲染时再启用。
+    /// </summary>
+    private double groupCountHeader() => 0;
 
     private void AutoSizeWindow()
     {
