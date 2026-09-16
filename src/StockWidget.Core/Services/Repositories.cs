@@ -19,6 +19,9 @@ public interface IWatchlistRepository
     /// <summary>移动到目标位置（pinned 项不可移动，返回 false）。</summary>
     bool Move(string code, int targetSortOrder);
     void UpdateName(string code, string name);
+
+    /// <summary>按给定代码序列整体重写 SortOrder（0..N-1）；序列外的行保持原相对次序。</summary>
+    void ReorderAll(IReadOnlyList<string> orderedCodes);
     void UpdateGroup(string code, string group);
     void ReplaceAll(IEnumerable<StockItem> items);
     /// <summary>旧版固定股：sh000001 / sz399001。</summary>
@@ -98,6 +101,19 @@ public sealed class WatchlistRepository(IDbContextFactory<StockWidgetDbContext> 
         for (var i = 0; i < all.Count; i++) all[i].SortOrder = i;
         db.SaveChanges();
         return true;
+    }
+
+    public void ReorderAll(IReadOnlyList<string> orderedCodes)
+    {
+        using var db = dbFactory.CreateDbContext();
+        var codes = orderedCodes.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var map = db.Watchlist
+            .Where(w => codes.Contains(w.Code))
+            .ToDictionary(w => w.Code, StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < orderedCodes.Count; i++)
+            if (map.TryGetValue(orderedCodes[i], out var row))
+                row.SortOrder = i;
+        db.SaveChanges();
     }
 
     public void UpdateName(string code, string name)

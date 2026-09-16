@@ -208,6 +208,11 @@ public partial class MainViewModel : ObservableObject
         if (RowsView is null) return;
 
         RowsView.SortDescriptions.Clear();
+        // 分组模式：挂分组描述渲染组头（指数/ETF/个股…），组间按分类序、组内按手动顺序
+        RowsView.GroupDescriptions.Clear();
+        if (_cfg.GroupByCategory)
+            RowsView.GroupDescriptions.Add(
+                new PropertyGroupDescription(nameof(StockRowViewModel.CategoryName)));
         if (RowsView is ListCollectionView list)
             list.CustomSort = new RowComparer(_cfg.SortField, _cfg.SortDescending, _cfg.GroupByCategory);
         else
@@ -221,7 +226,7 @@ public partial class MainViewModel : ObservableObject
         {
             if (x is not StockRowViewModel a || y is not StockRowViewModel b) return 0;
 
-            // 分类聚集仅在开启自动分组时生效；关闭后完全按自选手动顺序
+            // 分组模式：组间按分类序、组内按手动顺序（SortOrder）；关闭后纯手动顺序
             if (groupByCategory)
             {
                 var groupA = CategoryOrder.IndexOf(a.CategoryName);
@@ -551,44 +556,50 @@ public partial class MainViewModel : ObservableObject
         var row = SelectedRow;
         if (row is null) return false;
 
-        var ordered = _watchlistRepo.GetAll();
-        var idx = ordered.FindIndex(w => w.Code == row.Code);
-        if (idx < 0 || ordered[idx].IsPinned) return false;
+        // 以当前视图顺序（分组模式=分类聚集，手动模式=SortOrder）为基准
+        var viewOrder = RowsView is ListCollectionView lcv && lcv.CustomSort is not null
+            ? lcv.OfType<StockRowViewModel>().ToList()
+            : Rows.ToList();
+        var idx = viewOrder.FindIndex(r => r.Code == row.Code);
+        if (idx < 0 || viewOrder[idx].Info.IsPinned) return false;
 
-        var target = direction switch
+        int target;
+        switch (direction)
         {
-            // 移至顶部：落到第一个非固定股位置（固定股恒居首，否则目标位被占永远失败）
-            0 => ordered.FindIndex(w => !w.IsPinned),
-            2 => ordered.Count - 1,
-            -1 => idx - 1,
-            1 => idx + 1,
-            _ => idx,
-        };
-        if (target < 0 || target >= ordered.Count || target == idx) return false;
-
-        App.WriteCrashLog("Diag", new Exception($"MoveSelected 进入: code={row.Code} dir={direction} pinned={ordered[idx].IsPinned}"));
-        if (!_watchlistRepo.Move(row.Code, target)) 
-        {
-            App.WriteCrashLog("Diag", new Exception("Repo.Move 返回 false"));
-            return false;
+            case 0: // 移至顶部：第一个非固定股位置（视图序）
+                target = viewOrder.FindIndex(r => !r.Info.IsPinned);
+                break;
+            case 2: // 移至底部
+                target = viewOrder.Count - 1;
+                break;
+            default:
+                target = idx + direction;
+                break;
         }
-        App.WriteCrashLog("Diag", new Exception($"Move {row.Code} -> {target} 成功，开始同步视图"));
+        if (target < 0 || target >= viewOrder.Count || target == idx) return false;
+        if (viewOrder[target].Info.IsPinned) return false;
 
+        // 视图序列调整：移除目标行并插入到新位置
+        var moved = viewOrder[idx];
+        viewOrder.RemoveAt(idx);
+        viewOrder.Insert(target, moved);
+
+        // 固化进 SortOrder（整体重写，一次落库）
+        _watchlistRepo.ReorderAll(viewOrder.Select(r => r.Code).ToList());
         _watchlist = _watchlistRepo.GetAll();
-        // 同步行 VM 持有的条目（保持 Info 与库内一致）
+
+        // 同步行 VM 条目
         var itemsByCode = _watchlist.ToDictionary(w => w.Code, StringComparer.OrdinalIgnoreCase);
         foreach (var r in Rows)
             if (itemsByCode.TryGetValue(r.Code, out var item)) r.UpdateItem(item);
-        // 手动调整顺序 = 退出排序模式与分类聚集（跨分类移动否则被弹回，表现为"失效"）
-        if (_cfg.SortField is not null || _cfg.GroupByCategory)
+
+        // 手动移动退出表头排序（防御：排序入口已关闭）
+        if (_cfg.SortField is not null)
         {
             _cfg.SortField = null;
             _cfg.SortDescending = false;
-            _cfg.GroupByCategory = false;
             _settingsService.Save(_cfg);
         }
-        // 在当前排序模式（分类聚集/手动）内重排视图：行 VM 已持最新 SortOrder，
-        // 重新赋 CustomSort 触发即时重排——不清排序，避免两种顺序观切换的跳变
         ApplyViewStructure();
         return true;
     }

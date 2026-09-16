@@ -119,3 +119,37 @@ public class RepositoryTests : DatabaseTestBase
         }
     }
 }
+
+
+public class WatchlistReorderAllTests : DatabaseTestBase
+{
+    [Fact]
+    public void ReorderAll_RewritesSortOrderToMatchGivenSequence()
+    {
+        var repo = Provider.GetRequiredService<IWatchlistRepository>();
+        Assert.True(repo.Add("sh600390", "A"));
+        Assert.True(repo.Add("sz000001", "B"));
+        Assert.True(repo.Add("sh510050", "C"));
+
+        repo.ReorderAll(["sh510050", "sh600390", "sz000001"]);
+
+        var all = repo.GetAll();
+        Assert.Equal(3, all.Count);
+        Assert.Equal("sh510050", all[0].Code);
+        Assert.Equal("sh600390", all[1].Code);
+        Assert.Equal("sz000001", all[2].Code);
+        Assert.Equal(0, all[0].SortOrder);
+        Assert.Equal(1, all[1].SortOrder);
+        Assert.Equal(2, all[2].SortOrder);
+    }
+
+    [Fact]
+    public void ReorderAll_KeepsRowsNotInList()
+    {
+        var repo = Provider.GetRequiredService<IWatchlistRepository>();
+        repo.Add("sh600390", "A");
+        repo.Add("sz000001", "B");
+        repo.ReorderAll(["sz000001"]);
+        Assert.Equal(2, repo.GetAll().Count);
+    }
+}
