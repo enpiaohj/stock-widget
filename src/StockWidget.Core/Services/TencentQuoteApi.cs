@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using StockWidget.Core.Data.Entities;
 using StockWidget.Core.Models;
 
 namespace StockWidget.Core.Services;
@@ -20,6 +21,9 @@ public interface ITencentQuoteApi
 
     /// <summary>腾讯智能搜索（smartbox.gtimg.cn，GBK）：中文/拼音/代码关键字 → 候选；失败返回空列表。</summary>
     Task<IReadOnlyList<StockSearchMatch>> SearchSuggestAsync(string keyword, CancellationToken ct = default);
+
+    /// <summary>历史日K（前复权，最近 count 根，升序）；接口失败返回空列表。</summary>
+    Task<List<DailyKlineEntity>> FetchDailyKlineHistoryAsync(string code, int count, CancellationToken ct = default);
 }
 
 /// <summary>分时数据：HHmm 时间点 + 价格序列。</summary>
@@ -124,8 +128,7 @@ public sealed class TencentQuoteApi : ITencentQuoteApi, IDisposable
         }
     }
 
-    public async Task<IReadOnlyList<StockSearchMatch>> SearchSuggestAsync(string keyword, CancellationToken ct = default)
-    {
+    public async Task<IReadOnlyList<StockSearchMatch>> SearchSuggestAsync(string keyword, CancellationToken ct = default)    {
         try
         {
             if (string.IsNullOrWhiteSpace(keyword)) return [];
@@ -146,7 +149,96 @@ public sealed class TencentQuoteApi : ITencentQuoteApi, IDisposable
         }
     }
 
+    public async Task<List<DailyKlineEntity>> FetchDailyKlineHistoryAsync(string code, int count, CancellationToken ct = default)
+    {
+        try
+        {
+            // fqkline 历史日K（前复权）：param=代码,day,,,{根数},qfq
+            var url = $"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={code},day,,,{count},qfq";
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(6));
+            using var resp = await _http.GetAsync(url, cts.Token).ConfigureAwait(false);
+            resp.EnsureSuccessStatusCode();
+
+            await using var stream = await resp.Content.ReadAsStreamAsync(cts.Token).ConfigureAwait(false);
+            using var doc = await JsonDocument.ParseAsync(stream, cancellationToken: cts.Token).ConfigureAwait(false);
+            return TencentKlineHistoryParser.Parse(doc.RootElement, code);
+        }
+        catch (Exception)
+        {
+            return [];
+        }
+    }
+
     public void Dispose() => _http.Dispose();
+}
+
+// ---------------------------
+// 历史日K（fqkline）解析
+// ---------------------------
+public static class TencentKlineHistoryParser
+{
+    /// <summary>
+    /// 解析 fqkline/get 响应。data.{code} 下优先 qfqday（前复权），回退 day；
+    /// 行格式 [date, open, close, high, low, volume, ...]（腾讯口径第 3 列为收盘价），
+    /// 尾部可能混入对象元素（如 amount），跳过非数组项。
+    /// </summary>
+    public static List<DailyKlineEntity> Parse(JsonElement root, string code)
+    {
+        var result = new List<DailyKlineEntity>();
+        try
+        {
+            if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("data", out var data))
+                return result;
+            if (!data.TryGetProperty(code, out var entry) || entry.ValueKind != JsonValueKind.Object)
+                return result;
+
+            if (!entry.TryGetProperty("qfqday", out var rows))
+                entry.TryGetProperty("day", out rows);
+            if (rows.ValueKind != JsonValueKind.Array)
+                return result;
+
+            foreach (var row in rows.EnumerateArray())
+            {
+                if (row.ValueKind != JsonValueKind.Array || row.GetArrayLength() < 6)
+                    continue;
+                if (row[0].ValueKind != JsonValueKind.String)
+                    continue;
+
+                var date = row[0].GetString();
+                if (string.IsNullOrEmpty(date)) continue;
+                if (!TryDec(row[1], out var open)) continue;
+                if (!TryDec(row[2], out var close)) continue;
+                if (!TryDec(row[3], out var high)) continue;
+                if (!TryDec(row[4], out var low)) continue;
+                if (!TryDec(row[5], out var volume)) continue;
+
+                decimal amount = 0m;
+                if (row.GetArrayLength() > 6 && row[6].ValueKind == JsonValueKind.Number)
+                    TryDec(row[6], out amount);
+
+                result.Add(new DailyKlineEntity
+                {
+                    Code = code,
+                    Date = date,
+                    Open = open,
+                    High = high,
+                    Low = low,
+                    Close = close,
+                    Volume = volume,
+                    Amount = amount,
+                });
+            }
+        }
+        catch
+        {
+            // 结构异常按空处理，调用方静默跳过
+        }
+        return result;
+    }
+
+    private static bool TryDec(JsonElement el, out decimal value) =>
+        decimal.TryParse(el.ToString(), NumberStyles.Float, CultureInfo.InvariantCulture, out value);
 }
 
 // ---------------------------

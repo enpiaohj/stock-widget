@@ -42,4 +42,34 @@ public class DailyKlineRepositoryTests : DatabaseTestBase
         Assert.Contains("sh600390", codes);
         Assert.Single(codes);
     }
+
+    [Fact]
+    public void InsertMissing_InsertsOnlyAbsentRows_AndNeverOverwrites()
+    {
+        var repo = Provider.GetRequiredService<IDailyKlineRepository>();
+        repo.UpsertRange([K("sh600390", "2026-09-15", 10m)]);
+
+        var inserted = repo.InsertMissing(
+        [
+            K("sh600390", "2026-09-15", 99m), // 已存在：不覆盖
+            K("sh600390", "2026-09-16", 11m), // 缺失：插入
+            K("sz000001", "2026-09-16", 5m),  // 其他代码缺失：插入
+        ]);
+
+        Assert.Equal(2, inserted);
+        var rows = repo.GetByCode("sh600390", 10);
+        Assert.Equal(2, rows.Count);
+        Assert.Equal(10m, rows.Single(r => r.Date == "2026-09-15").Close); // 原值保留
+    }
+
+    [Fact]
+    public void GetLatestDate_ReturnsNewestOrNull()
+    {
+        var repo = Provider.GetRequiredService<IDailyKlineRepository>();
+        Assert.Null(repo.GetLatestDate("sh600390"));
+
+        repo.UpsertRange([K("sh600390", "2026-09-15", 10m), K("sh600390", "2026-09-16", 11m)]);
+        Assert.Equal("2026-09-16", repo.GetLatestDate("sh600390"));
+        Assert.Null(repo.GetLatestDate("sz000001"));
+    }
 }

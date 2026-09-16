@@ -68,6 +68,45 @@ public partial class MinuteChartWindow : GlassWindow
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
+    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    // ---------------------------
+    // 全屏 / 还原（铺满工作区；记录原位置便于还原）
+    // ---------------------------
+
+    private bool _fullScreen;
+    private Rect _restoreBounds = new(0, 0, 520, 360);
+    private bool _restoreTopmost;
+
+    private void FullScreen_Click(object sender, RoutedEventArgs e) => SetFullScreen(!_fullScreen);
+
+    private void SetFullScreen(bool full)
+    {
+        if (full)
+        {
+            _restoreBounds = new Rect(Left, Top, Width, Height);
+            _restoreTopmost = Topmost;
+            var work = SystemParameters.WorkArea;
+            WindowState = WindowState.Normal; // 从最小化状态还原后再铺满
+            Left = work.Left;
+            Top = work.Top;
+            Width = work.Width;
+            Height = work.Height;
+            Topmost = true;
+            FullScreenButton.Content = "❐ 还原";
+        }
+        else
+        {
+            Left = _restoreBounds.Left;
+            Top = _restoreBounds.Top;
+            Width = _restoreBounds.Width;
+            Height = _restoreBounds.Height;
+            Topmost = _restoreTopmost;
+            FullScreenButton.Content = "⛶ 全屏";
+        }
+        _fullScreen = full;
+    }
+
     private void TabMinute_Click(object sender, RoutedEventArgs e)
     {
         _showingKline = false;

@@ -38,12 +38,11 @@ public partial class App : Application
 
     private void StartupCore(StartupEventArgs e)
     {
-        // 单实例互斥：二次启动时提示后退出
+        // 单实例互斥：二次启动静默退出（不弹窗打扰；托盘已有唯一实例在运行）
         _singleInstanceMutex = new Mutex(true, @"Local\StockWidget.SingleInstance", out var isNew);
         if (!isNew)
         {
-            MessageBox.Show("股票小插件已在运行。", "股票小插件",
-                MessageBoxButton.OK, MessageBoxImage.Information);
+            WriteCrashLog("Diag", new Exception("单实例互斥：已有实例运行，二次启动静默退出"));
             Shutdown();
             return;
         }

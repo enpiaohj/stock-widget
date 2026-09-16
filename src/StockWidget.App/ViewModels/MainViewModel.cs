@@ -33,6 +33,7 @@ public partial class MainViewModel : ObservableObject
     private readonly IQuoteSnapshotRepository _snapshotRepo;
     private readonly ITradingCalendar _tradingCalendar;
     private readonly IKlineArchiver _klineArchiver;
+    private readonly IKlineBackfillService _klineBackfill;
     private readonly IDailyKlineRepository _klineRepo;
     private readonly IAmountHistoryRepository _amountHistoryRepo;
 
@@ -67,6 +68,9 @@ public partial class MainViewModel : ObservableObject
 
     /// <summary>状态段：刷新间隔 / 锁定 / 最后更新时间。</summary>
     [ObservableProperty] private string _statusText = "正在初始化…";
+
+    /// <summary>日K历史回补进度/完成提示（空 = 无进行中状态）。</summary>
+    [ObservableProperty] private string _backfillStatusText = "";
 
     /// <summary>休市徽章（周末）。</summary>
     [ObservableProperty] private bool _marketClosed;
@@ -121,6 +125,7 @@ public partial class MainViewModel : ObservableObject
         IQuoteSnapshotRepository snapshotRepo,
         ITradingCalendar tradingCalendar,
         IKlineArchiver klineArchiver,
+        IKlineBackfillService klineBackfill,
         IDailyKlineRepository klineRepo,
         IAmountHistoryRepository amountHistoryRepo)
     {
@@ -132,6 +137,7 @@ public partial class MainViewModel : ObservableObject
         _snapshotRepo = snapshotRepo;
         _tradingCalendar = tradingCalendar;
         _klineArchiver = klineArchiver;
+        _klineBackfill = klineBackfill;
         _klineRepo = klineRepo;
         _amountHistoryRepo = amountHistoryRepo;
 
@@ -162,6 +168,42 @@ public partial class MainViewModel : ObservableObject
 
         ApplySettingsInternal(save: false);
         await RefreshAsync();
+
+        // 日K历史缺口回补：启动后后台串行执行（只插缺失、稳态零请求），不阻塞启动；
+        // 进度显示在底部状态栏，完成且确有补数时提示数秒后清除
+        var codes = _watchlist.Select(w => w.Code).ToList();
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var progress = new Progress<(int Done, int Total)>(p =>
+                    _dispatcher.Invoke(() =>
+                    {
+                        BackfillStatusText = $"日K回补中 ({p.Done}/{p.Total})…";
+                        UpdateStatusText();
+                    }));
+                var inserted = await _klineBackfill.BackfillAsync(codes, DateTime.Today,
+                    CancellationToken.None, progress).ConfigureAwait(false);
+
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    BackfillStatusText = inserted > 0 ? $"日K回补完成（补 {inserted} 天历史）" : "";
+                    UpdateStatusText();
+                }).Task;
+
+                if (inserted > 0)
+                    _ = Task.Delay(8000).ContinueWith(_ =>
+                        _dispatcher.Invoke(() =>
+                        {
+                            BackfillStatusText = "";
+                            UpdateStatusText();
+                        }));
+            }
+            catch (Exception ex)
+            {
+                App.WriteCrashLog("Diag", ex);
+            }
+        });
     }
 
     /// <summary>设置中心"应用 / 保存"后调用。</summary>
@@ -341,7 +383,19 @@ public partial class MainViewModel : ObservableObject
             // 收盘归档：交易日 15:05 后首个刷新落库（后台执行避免阻塞 UI；幂等可重试）
             var archivedQuotes = result.Quotes;
             var now = DateTime.Now;
-            _ = Task.Run(() => _klineArchiver.TryArchive(archivedQuotes, now));
+            _ = Task.Run(() =>
+            {
+                try
+                {
+                    _klineArchiver.TryArchive(archivedQuotes, now);
+                    App.WriteCrashLog("Diag", new Exception(
+                        $"KlineArchive tick: now={now:HH:mm:ss} quotes={archivedQuotes.Count} success={archivedQuotes.Count(q => q.Success)}"));
+                }
+                catch (Exception ex)
+                {
+                    App.WriteCrashLog("Diag", ex);
+                }
+            });
         }
         catch (Exception)
         {
@@ -396,6 +450,8 @@ public partial class MainViewModel : ObservableObject
     private string BuildStatusSuffix()
     {
         var parts = new List<string>();
+        if (!string.IsNullOrEmpty(BackfillStatusText))
+            parts.Add(BackfillStatusText);
         if (_cfg.ShowRefreshInterval)
             parts.Add($"刷新间隔 {_cfg.RefreshIntervalMs / 1000.0:0.#} 秒");
         if (_cfg.ShowLockedStatus)

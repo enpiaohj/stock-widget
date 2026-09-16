@@ -371,6 +371,12 @@ public interface IDailyKlineRepository
 
     /// <summary>某代码最近 N 根日K，按日期升序返回。</summary>
     List<DailyKlineEntity> GetByCode(string code, int days);
+
+    /// <summary>仅插入本地不存在的 (Code,Date) 记录，已有记录不覆盖；返回插入条数。</summary>
+    int InsertMissing(IEnumerable<DailyKlineEntity> klines);
+
+    /// <summary>某代码最新一条日K的日期（yyyy-MM-dd）；无记录返回 null。</summary>
+    string? GetLatestDate(string code);
 }
 
 public sealed class DailyKlineRepository(IDbContextFactory<StockWidgetDbContext> dbFactory) : IDailyKlineRepository
@@ -420,5 +426,34 @@ public sealed class DailyKlineRepository(IDbContextFactory<StockWidgetDbContext>
             .Take(days)
             .OrderBy(k => k.Date)
             .ToList();
+    }
+
+    public int InsertMissing(IEnumerable<DailyKlineEntity> klines)
+    {
+        var list = klines.ToList();
+        if (list.Count == 0) return 0;
+        using var db = dbFactory.CreateDbContext();
+        var codes = list.Select(k => k.Code).Distinct().ToList();
+        var dates = list.Select(k => k.Date).Distinct().ToList();
+        var existing = db.DailyKlines
+            .Where(k => codes.Contains(k.Code) && dates.Contains(k.Date))
+            .AsEnumerable()
+            .Select(k => (k.Code, k.Date))
+            .ToHashSet();
+        var missing = list.Where(k => !existing.Contains((k.Code, k.Date))).ToList();
+        if (missing.Count == 0) return 0;
+        db.DailyKlines.AddRange(missing);
+        db.SaveChanges();
+        return missing.Count;
+    }
+
+    public string? GetLatestDate(string code)
+    {
+        using var db = dbFactory.CreateDbContext();
+        return db.DailyKlines.AsNoTracking()
+            .Where(k => k.Code == code)
+            .OrderByDescending(k => k.Date)
+            .Select(k => k.Date)
+            .FirstOrDefault();
     }
 }

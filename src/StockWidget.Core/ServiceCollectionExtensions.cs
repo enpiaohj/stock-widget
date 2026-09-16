@@ -28,6 +28,7 @@ public static class ServiceCollectionExtensions
         var builtInCal = TradingCalendarSeeder.GetBuiltIn();
         services.AddSingleton<ITradingCalendar>(new TradingCalendarService(builtInCal));
         services.AddSingleton<IKlineArchiver, KlineArchiver>();
+        services.AddSingleton<IKlineBackfillService, KlineBackfillService>();
 
         // 首次运行：建库 / 迁移
         using (var db = new StockWidgetDbContext(new DbContextOptionsBuilder<StockWidgetDbContext>()

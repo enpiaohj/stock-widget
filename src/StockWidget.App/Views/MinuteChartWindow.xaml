@@ -3,9 +3,9 @@
                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                    xmlns:views="clr-namespace:StockWidget.App.Views"
                    Title="分时走势"
-                   Width="520" Height="360"
+                   Width="720" Height="440"
                    WindowStartupLocation="CenterOwner"
-                   ResizeMode="NoResize" ShowInTaskbar="False"
+                   ResizeMode="NoResize" ShowInTaskbar="True"
                    Background="{DynamicResource BgBrush}">
     <views:GlassWindow.Resources>
         <!-- 页签按钮：选中用强调色底 -->
@@ -50,21 +50,37 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock x:Name="NameText" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource FgBrush}" />
-                <TextBlock x:Name="CodeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center"
-                           Foreground="{DynamicResource SubFgBrush}" />
-                <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" Margin="14,0,0,0"
-                           VerticalAlignment="Center" />
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <!-- 名称完整优先（上限 180）；空间不足时压缩冗余的代码列 -->
+            <TextBlock x:Name="NameText" Grid.Column="0" FontSize="15" FontWeight="Bold"
+                       Foreground="{DynamicResource FgBrush}" MaxWidth="180"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0" />
+            <TextBlock x:Name="CodeText" Grid.Column="1" FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource SubFgBrush}" Margin="0,0,10,0"
+                       TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" />
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" />
                 <TextBlock x:Name="ChangeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center" />
-                <Border x:Name="ClosedBadge" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
-                        Padding="8,2" Margin="12,0,60,0" VerticalAlignment="Center" Visibility="Collapsed">
-                    <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
-                </Border>
             </StackPanel>
-            <!-- 关闭按钮：锚定右缘，加宽避免文字切边 -->
-            <Button x:Name="CloseButton" Content="✕ 关闭" Width="80" HorizontalAlignment="Right"
-                    Margin="0,0,-6,0" Click="Close_Click" VerticalAlignment="Center" />
+            <Border x:Name="ClosedBadge" Grid.Column="3" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
+                    Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed">
+                <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <!-- 窗口操作：最小化 / 全屏（还原） / 关闭 -->
+            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,-6,0">
+                <Button Content="—" Width="34" Click="Minimize_Click" ToolTip="最小化"
+                        VerticalAlignment="Center" />
+                <Button x:Name="FullScreenButton" Content="⛶ 全屏" Width="72" Margin="6,0,0,0"
+                        Click="FullScreen_Click" VerticalAlignment="Center" />
+                <Button x:Name="CloseButton" Content="✕ 关闭" Width="80" Margin="6,0,0,0"
+                        Click="Close_Click" VerticalAlignment="Center" />
+            </StackPanel>
         </Grid>
 
         <!-- 分时 / 日K 页签 -->
