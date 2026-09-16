@@ -8,6 +8,7 @@
                    ShowActivated="True"
                    Background="{DynamicResource BgBrush}"
                    TextOptions.TextRenderingMode="ClearType"
+                   TextOptions.TextFormattingMode="Display"
                    UseLayoutRounding="True">
 
     <Border x:Name="CardShadowHost" CornerRadius="0" Margin="0" Background="Transparent">
