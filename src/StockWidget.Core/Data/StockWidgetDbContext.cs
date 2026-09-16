@@ -13,6 +13,7 @@ public sealed class StockWidgetDbContext(DbContextOptions<StockWidgetDbContext> 
     public DbSet<AlertRuleEntity> AlertRules => Set<AlertRuleEntity>();
     public DbSet<TradingCalendarEntity> TradingCalendar => Set<TradingCalendarEntity>();
     public DbSet<DailyKlineEntity> DailyKlines => Set<DailyKlineEntity>();
+    public DbSet<AiAnalysisCacheEntity> AiAnalysisCaches => Set<AiAnalysisCacheEntity>();
 
     protected override void OnModelCreating(ModelBuilder mb)
     {
@@ -60,6 +61,12 @@ public sealed class StockWidgetDbContext(DbContextOptions<StockWidgetDbContext> 
         {
             e.ToTable("daily_kline");
             e.HasKey(x => new { x.Code, x.Date });
+        });
+
+        mb.Entity<AiAnalysisCacheEntity>(e =>
+        {
+            e.ToTable("ai_analysis_cache");
+            e.HasKey(x => x.Key);
         });
     }
 }

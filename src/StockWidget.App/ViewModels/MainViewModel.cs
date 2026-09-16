@@ -95,6 +95,23 @@ public partial class MainViewModel : ObservableObject
     /// <summary>请求打开设置中心。</summary>
     public event Action? SettingsRequested;
 
+    private string? _pendingSettingsSection;
+
+    /// <summary>请求打开设置中心并可定位到指定区块（如 "ai" = AI 分析页签）。</summary>
+    public void RequestSettings(string? section = null)
+    {
+        _pendingSettingsSection = section;
+        SettingsRequested?.Invoke();
+    }
+
+    /// <summary>窗口侧打开设置时取走待定位区块（一次性消费）。</summary>
+    public string? ConsumeSettingsSection()
+    {
+        var section = _pendingSettingsSection;
+        _pendingSettingsSection = null;
+        return section;
+    }
+
     /// <summary>请求打开关于窗口。</summary>
     public event Action? AboutRequested;
 

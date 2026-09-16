@@ -603,7 +603,7 @@ public partial class MainWindow : GlassWindow
 
     private void OpenSettings()
     {
-        var dlg = new SettingsWindow(_vm) { Owner = this };
+        var dlg = new SettingsWindow(_vm, _vm.ConsumeSettingsSection()) { Owner = this };
         dlg.ShowDialog();
         if (dlg.Saved) BuildContextMenu(); // 刷新间隔 / 快捷键信息行
     }

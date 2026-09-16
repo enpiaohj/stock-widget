@@ -1,3 +1,5 @@
+using StockWidget.Core.Models.Ai;
+
 namespace StockWidget.Core.Models;
 
 /// <summary>
@@ -81,11 +83,16 @@ public sealed class AppSettings
     /// </summary>
     public Dictionary<string, string> CategoryColors { get; set; } = [];
 
+    // ---------- 增强：AI 分析 ----------
+    /// <summary>DeepSeek AI 分析配置（API Key 仅存 DPAPI 密文）。</summary>
+    public AiSettings Ai { get; set; } = new();
+
     /// <summary>克隆（设置对话框取消恢复用）。</summary>
     public AppSettings Clone()
     {
         var clone = (AppSettings)MemberwiseClone();
         clone.CategoryColors = new Dictionary<string, string>(CategoryColors);
+        clone.Ai = Ai.Clone();
         return clone;
     }
 }

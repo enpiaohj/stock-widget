@@ -1,10 +1,14 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using Microsoft.Extensions.DependencyInjection;
+using StockWidget.App.Services;
 using StockWidget.App.ViewModels;
 using StockWidget.Core.Data.Entities;
 using StockWidget.Core.Models;
+using StockWidget.Core.Models.Ai;
 using StockWidget.Core.Services;
+using StockWidget.Core.Services.Ai;
 
 namespace StockWidget.App.Views;
 
@@ -14,6 +18,14 @@ public partial class MinuteChartWindow : GlassWindow
     private readonly MainViewModel _vm;
     private StockRowViewModel _row;
     private bool _showingKline;
+    private readonly AiAnalysisPanel? _aiPanel;
+
+    // ---------------------------
+    // AI 分析侧面板：以初始窗口宽度为基础，展开时窗口向右扩展 AiPanelWidth
+    // ---------------------------
+    private bool _aiPanelOpen;
+    private const double AiPanelWidth = 320;
+    private const double BaseWidth = 720;   // 与 XAML 初始 Width 一致
 
     public MinuteChartWindow(MainViewModel vm, StockRowViewModel row)
     {
@@ -23,7 +35,15 @@ public partial class MinuteChartWindow : GlassWindow
 
         LoadHeader(row);
 
+        // AI 面板（设置中未启用时按钮点击会给出引导）
+        var aiService = App.Services.GetRequiredService<IAiAnalysisService>();
+        var settingsService = App.Services.GetRequiredService<ISettingsService>();
+        _aiPanel = new AiAnalysisPanel(aiService, settingsService);
+        _aiPanel.RequestOpenSettings += () => _vm.RequestSettings("ai");
+        AiPanelHostContent.Content = _aiPanel;
+
         Loaded += async (_, _) => await LoadAsync();
+        Closing += (_, _) => _aiPanel.Cancel();
         PreviewKeyDown += (_, e) =>
         {
             if (e.Key == Key.Escape) Close(); // Esc 关闭
@@ -68,6 +88,54 @@ public partial class MinuteChartWindow : GlassWindow
 
     private void Close_Click(object sender, RoutedEventArgs e) => Close();
 
+    // ---------------------------
+    // AI 分析（✨ AI分析按钮：展开/收起侧面板）
+    // ---------------------------
+
+    private void AiAnalysis_Click(object sender, RoutedEventArgs e)
+    {
+        if (_aiPanel is null) return;
+        _aiPanelOpen = !_aiPanelOpen;
+        AiPanelHost.Visibility = _aiPanelOpen ? Visibility.Visible : Visibility.Collapsed;
+
+        if (!_fullScreen)
+            Width = BaseWidth + (_aiPanelOpen ? AiPanelWidth : 0); // 初始宽度 + 面板宽度，无累加
+
+        if (_aiPanelOpen)
+            _aiPanel.Analyze(BuildContext);
+    }
+
+    /// <summary>组装本地行情分析上下文（后台线程执行；数据全部来自本地）。</summary>
+    private MarketAnalysisContext? BuildContext()
+    {
+        var quote = _row.Current;
+        var klines = _vm.GetKlines(_row.Code, 120); // 与 K 线图可见区间一致
+        if (quote is not { Success: true } || klines.Count == 0) return null;
+
+        decimal Ma(int n) => klines.TakeLast(n).Average(k => k.Close);
+        decimal Chg(int n) => klines.Count > n && klines[^(n + 1)].Close != 0
+            ? (klines[^1].Close / klines[^(n + 1)].Close - 1m) * 100m
+            : 0m;
+
+        return new MarketAnalysisContext
+        {
+            Code = _row.Code,
+            Name = quote.Name is "-" or "" ? _row.Info.Name : quote.Name,
+            AssetType = _row.CategoryName,
+            AnalyzedAt = DateTime.Now,
+            Quote = quote,
+            Klines = klines,
+            Ma5 = Ma(5),
+            Ma10 = Ma(10),
+            Ma20 = Ma(20),
+            Change5Pct = Chg(5),
+            Change20Pct = Chg(20),
+            Change60Pct = Chg(60),
+            RangeHigh = klines.Max(k => k.High),
+            RangeLow = klines.Min(k => k.Low),
+        };
+    }
+
     private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
 
     // ---------------------------
@@ -75,18 +143,19 @@ public partial class MinuteChartWindow : GlassWindow
     // ---------------------------
 
     private bool _fullScreen;
-    private Rect _restoreBounds = new(0, 0, 520, 360);
+    private Rect _restoreBounds = new(0, 0, 720, 440);
     private bool _restoreTopmost;
 
     private void FullScreen_Click(object sender, RoutedEventArgs e) => SetFullScreen(!_fullScreen);
 
     private void SetFullScreen(bool full)
     {
+        var work = SystemParameters.WorkArea;
         if (full)
         {
-            _restoreBounds = new Rect(Left, Top, Width, Height);
+            // 记录"非全屏目标状态"（由状态计算：初始宽度 + 面板宽度），不读当前 UI 值，防漂移
+            _restoreBounds = new Rect(Left, Top, BaseWidth + (_aiPanelOpen ? AiPanelWidth : 0), 440);
             _restoreTopmost = Topmost;
-            var work = SystemParameters.WorkArea;
             WindowState = WindowState.Normal; // 从最小化状态还原后再铺满
             Left = work.Left;
             Top = work.Top;
@@ -94,15 +163,18 @@ public partial class MinuteChartWindow : GlassWindow
             Height = work.Height;
             Topmost = true;
             FullScreenButton.Content = "❐ 还原";
+            FullScreenButton.ToolTip = "还原";
         }
         else
         {
+            WindowState = WindowState.Normal;
             Left = _restoreBounds.Left;
             Top = _restoreBounds.Top;
-            Width = _restoreBounds.Width;
-            Height = _restoreBounds.Height;
+            Width = Math.Clamp(BaseWidth + (_aiPanelOpen ? AiPanelWidth : 0), 400, work.Width);
+            Height = Math.Clamp(440, 300, work.Height);
             Topmost = _restoreTopmost;
             FullScreenButton.Content = "⛶ 全屏";
+            FullScreenButton.ToolTip = "全屏";
         }
         _fullScreen = full;
     }

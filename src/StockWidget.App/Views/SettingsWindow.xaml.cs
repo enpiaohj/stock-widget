@@ -10,7 +10,9 @@ using StockWidget.App.Services;
 using StockWidget.Core.Data.Entities;
 using StockWidget.Core.Data;
 using StockWidget.Core.Models;
+using StockWidget.Core.Models.Ai;
 using StockWidget.Core.Services;
+using StockWidget.Core.Services.Ai;
 using MenuItem = System.Windows.Controls.MenuItem;
 
 namespace StockWidget.App.Views;
@@ -24,6 +26,11 @@ public partial class SettingsWindow : GlassWindow
     private bool _capturing;
     private bool _saved;
 
+    // AI Key 状态机：未输入新 Key 时保留原密文；点击"清空"才明确删除
+    private bool _aiKeyModified;
+    private bool _aiKeyCleared;
+    private readonly string? _initialSection;
+
     /// <summary>设置是否被保存 / 应用过（窗口侧据此刷新菜单等）。</summary>
     public bool Saved => _saved;
 
@@ -34,11 +41,12 @@ public partial class SettingsWindow : GlassWindow
 
     private readonly ObservableCollection<AlertRuleRow> _alertRows = [];
 
-    public SettingsWindow(MainViewModel vm)
+    public SettingsWindow(MainViewModel vm, string? initialSection = null)
     {
         _vm = vm;
         _original = vm.Settings.Clone();
         _working = _original.Clone();
+        _initialSection = initialSection;
         InitializeComponent();
 
         // 取消时的主题回退基准（修复旧版"取消未恢复主题"缺陷：此处按 original 恢复）
@@ -52,7 +60,12 @@ public partial class SettingsWindow : GlassWindow
             }
         };
 
-        Loaded += (_, _) => LoadFromSettings();
+        Loaded += (_, _) =>
+        {
+            LoadFromSettings();
+            // AI 面板"前往设置"定位到 AI 分析页签
+            if (_initialSection == "ai") Tabs.SelectedItem = AiTabItem;
+        };
     }
 
     private void LoadFromSettings()
@@ -95,6 +108,16 @@ public partial class SettingsWindow : GlassWindow
         AutoStartCheck.IsChecked = _working.AutoStart;
         GroupByCategoryCheck.IsChecked = _working.GroupByCategory;
         ShowSparklineCheck.IsChecked = _working.ShowSparkline;
+
+        // ---- AI 分析 ----
+        AiEnabledCheck.IsChecked = _working.Ai.Enabled;
+        AiBaseUrlBox.Text = _working.Ai.BaseUrl;
+        AiModelBox.Text = _working.Ai.Model;
+        AiTimeoutBox.Text = _working.Ai.TimeoutSeconds.ToString(CultureInfo.InvariantCulture);
+        _aiKeyModified = false;
+        _aiKeyCleared = false;
+        AiKeyBox.Clear();
+        RefreshAiKeyState();
 
         // 强调色选择
         BuildAccentPicker();
@@ -588,6 +611,25 @@ public partial class SettingsWindow : GlassWindow
         cfg.ShowSparkline = ShowSparklineCheck.IsChecked == true;
         cfg.AccentColor = _working.AccentColor;
 
+        // AI 分析：Key 状态机——未输入新 Key 保留原密文；点过"清空"才删除
+        if (!int.TryParse(AiTimeoutBox.Text, out var aiTimeout) || aiTimeout is < 5 or > 300)
+        {
+            error = "AI 分析超时需为 5-300 秒。";
+            return false;
+        }
+        cfg.Ai = new AiSettings
+        {
+            Enabled = AiEnabledCheck.IsChecked == true,
+            BaseUrl = AiBaseUrlBox.Text.Trim(),
+            Model = AiModelBox.Text.Trim(),
+            TimeoutSeconds = aiTimeout,
+            ApiKeyEncrypted = _aiKeyCleared
+                ? ""
+                : _aiKeyModified && AiKeyBox.Password.Length > 0
+                    ? AiCredentialProtector.Protect(AiKeyBox.Password)
+                    : _working.Ai.ApiKeyEncrypted,
+        };
+
         // 字段
         cfg.CustomFields.Clear();
         var children = OptionalPanel.Children.OfType<StackPanel>().ToList();
@@ -625,6 +667,77 @@ public partial class SettingsWindow : GlassWindow
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
+
+    // ---------------------------
+    // AI 分析配置（DeepSeek）
+    // ---------------------------
+
+    /// <summary>刷新 Key 状态提示（不显示明文/完整密钥）。</summary>
+    private void RefreshAiKeyState()
+    {
+        var configured = _aiKeyModified && AiKeyBox.Password.Length > 0;
+        if (_aiKeyCleared)
+            AiStatusText.Text = "API Key 已清除，保存后生效";
+        else if (configured)
+            AiStatusText.Text = "已输入新 Key，保存后生效";
+        else
+            AiStatusText.Text = !string.IsNullOrEmpty(_working.Ai.ApiKeyEncrypted)
+                ? "已配置（输入新 Key 可覆盖）"
+                : "未配置";
+    }
+
+    private void AiKeyBox_PasswordChanged(object sender, RoutedEventArgs e)
+    {
+        _aiKeyModified = true;
+        RefreshAiKeyState();
+    }
+
+    private void AiKeyClear_Click(object sender, RoutedEventArgs e)
+    {
+        AiKeyBox.Clear();
+        _aiKeyModified = false;
+        _aiKeyCleared = true;
+        RefreshAiKeyState();
+    }
+
+    /// <summary>最小请求验证 Base URL / Key / Model / 网络（不落日志明文）。</summary>
+    private async void AiTest_Click(object sender, RoutedEventArgs e)
+    {
+        var baseUrl = AiBaseUrlBox.Text.Trim();
+        var model = AiModelBox.Text.Trim();
+        var key = _aiKeyModified && AiKeyBox.Password.Length > 0
+            ? AiKeyBox.Password
+            : _aiKeyCleared ? "" : AiCredentialProtector.Unprotect(_working.Ai.ApiKeyEncrypted);
+
+        if (string.IsNullOrWhiteSpace(baseUrl)) { AiStatusText.Text = "✗ 请先填写 API Base URL"; return; }
+        if (string.IsNullOrWhiteSpace(model)) { AiStatusText.Text = "✗ 请先填写 Model"; return; }
+        if (string.IsNullOrWhiteSpace(key)) { AiStatusText.Text = "✗ 请先填写 API Key"; return; }
+
+        int.TryParse(AiTimeoutBox.Text, out var timeout);
+        if (timeout is < 5 or > 300) timeout = 60;
+
+        AiTestButton.IsEnabled = false;
+        AiStatusText.Text = "正在测试...";
+        try
+        {
+            using var client = new DeepSeekAiClient();
+            await client.CompleteAsync(baseUrl, key, model,
+                "你是连接测试助手。", "连接测试：请仅返回 JSON {\"ok\":true}。", timeout, CancellationToken.None);
+            AiStatusText.Text = "✓ DeepSeek API 连接正常";
+        }
+        catch (AiApiException ex)
+        {
+            AiStatusText.Text = $"✗ {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            AiStatusText.Text = $"✗ 连接失败：{ex.Message}";
+        }
+        finally
+        {
+            AiTestButton.IsEnabled = true;
+        }
+    }
 
     private void ResetFields_Click(object sender, RoutedEventArgs e)
     {

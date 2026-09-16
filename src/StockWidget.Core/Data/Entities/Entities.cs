@@ -131,3 +131,19 @@ public sealed class DailyKlineEntity
     /// <summary>成交额（万元，腾讯口径）。</summary>
     public decimal Amount { get; set; }
 }
+
+/// <summary>
+/// AI 分析结果缓存（v0.3.0）：Key = 代码 + 最后K线日 + 最新收盘 + 模型；
+/// 同一行情数据命中缓存直接展示，避免重复消耗 API 额度。不含 API Key。
+/// </summary>
+public sealed class AiAnalysisCacheEntity
+{
+    /// <summary>缓存键（主键）。</summary>
+    public string Key { get; set; } = "";
+
+    /// <summary>分析结果 JSON（AiMarketAnalysisResult 序列化）。</summary>
+    public string ResultJson { get; set; } = "";
+
+    /// <summary>生成时间 yyyy-MM-dd HH:mm:ss。</summary>
+    public string CreatedAt { get; set; } = "";
+}

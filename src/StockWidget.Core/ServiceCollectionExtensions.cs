@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using StockWidget.Core.Data;
 using StockWidget.Core.Services;
+using StockWidget.Core.Services.Ai;
 
 namespace StockWidget.Core;
 
@@ -29,6 +30,9 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ITradingCalendar>(new TradingCalendarService(builtInCal));
         services.AddSingleton<IKlineArchiver, KlineArchiver>();
         services.AddSingleton<IKlineBackfillService, KlineBackfillService>();
+        services.AddSingleton<IAiAnalysisCacheRepository, AiAnalysisCacheRepository>();
+        services.AddSingleton<IAiApiClient, DeepSeekAiClient>();
+        services.AddSingleton<IAiAnalysisService, DeepSeekAiAnalysisService>();
 
         // 首次运行：建库 / 迁移
         using (var db = new StockWidgetDbContext(new DbContextOptionsBuilder<StockWidgetDbContext>()

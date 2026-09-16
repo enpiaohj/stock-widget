@@ -41,7 +41,13 @@
             </Setter>
         </Style>
     </views:GlassWindow.Resources>
-    <Grid Margin="16">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -54,32 +60,33 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <!-- 名称完整优先（上限 180）；空间不足时压缩冗余的代码列 -->
-            <TextBlock x:Name="NameText" Grid.Column="0" FontSize="15" FontWeight="Bold"
-                       Foreground="{DynamicResource FgBrush}" MaxWidth="180"
-                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0" />
-            <TextBlock x:Name="CodeText" Grid.Column="1" FontSize="12" VerticalAlignment="Center"
-                       Foreground="{DynamicResource SubFgBrush}" Margin="0,0,10,0"
-                       TextTrimming="CharacterEllipsis" HorizontalAlignment="Left" />
-            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" />
+            <!-- 名称 / 代码 / 价格 / 涨跌幅 一组紧凑靠左 -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="NameText" FontSize="15" FontWeight="Bold"
+                           Foreground="{DynamicResource FgBrush}" MaxWidth="180"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock x:Name="CodeText" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SubFgBrush}" Margin="0,0,10,0" />
+                <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
                 <TextBlock x:Name="ChangeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center" />
             </StackPanel>
-            <Border x:Name="ClosedBadge" Grid.Column="3" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
-                    Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center" Visibility="Collapsed">
+            <Border x:Name="ClosedBadge" Grid.Column="1" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
+                    Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                    Visibility="Collapsed">
                 <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
             </Border>
-            <!-- 窗口操作：最小化 / 全屏（还原） / 关闭 -->
-            <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,-6,0">
+            <!-- 窗口操作：AI 分析 / 最小化 / 全屏（还原） / 关闭 -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,-6,0">
+                <Button x:Name="AiAnalysisButton" Content="✨ AI分析" Width="88" Margin="0,0,8,0"
+                        Click="AiAnalysis_Click" VerticalAlignment="Center"
+                        ToolTip="基于本地行情与历史日K的 AI 行情解读" />
                 <Button Content="—" Width="34" Click="Minimize_Click" ToolTip="最小化"
                         VerticalAlignment="Center" />
                 <Button x:Name="FullScreenButton" Content="⛶ 全屏" Width="72" Margin="6,0,0,0"
-                        Click="FullScreen_Click" VerticalAlignment="Center" />
+                        Click="FullScreen_Click" VerticalAlignment="Center" ToolTip="全屏" />
                 <Button x:Name="CloseButton" Content="✕ 关闭" Width="80" Margin="6,0,0,0"
-                        Click="Close_Click" VerticalAlignment="Center" />
+                        Click="Close_Click" VerticalAlignment="Center" ToolTip="关闭" />
             </StackPanel>
         </Grid>
 
@@ -123,5 +130,13 @@
             <TextBlock x:Name="TimeText" FontSize="11" Foreground="{DynamicResource SubFgBrush}"
                    HorizontalAlignment="Right" />
         </Grid>
+        </Grid>
+
+        <!-- AI 分析侧面板（默认收起） -->
+        <Border Grid.Column="1" x:Name="AiPanelHost" Width="320" Visibility="Collapsed"
+                Background="{DynamicResource CardGradientBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0">
+            <ContentControl x:Name="AiPanelHostContent" />
+        </Border>
     </Grid>
 </views:GlassWindow>

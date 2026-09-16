@@ -62,4 +62,51 @@ public class SettingsServiceFallbackTests : DatabaseTestBase
         // Clone 的字典不应与 Current 共享引用（取消设置时不得污染原值）
         Assert.DoesNotContain("index", svc.Current.CategoryColors);
     }
+
+    // ---------- v0.3.0 AI 分析配置 ----------
+
+    [Fact]
+    public void Default_AiSettings_IsSane()
+    {
+        var svc = Provider.GetRequiredService<ISettingsService>();
+        var ai = svc.Current.Ai;
+        Assert.True(ai.Enabled);
+        Assert.Equal("https://api.deepseek.com", ai.BaseUrl);
+        Assert.Equal("deepseek-chat", ai.Model);
+        Assert.Equal(60, ai.TimeoutSeconds);
+        Assert.Equal("", ai.ApiKeyEncrypted);
+    }
+
+    [Fact]
+    public void AiSettings_RoundTripsThroughSaveAndReload()
+    {
+        var svc = Provider.GetRequiredService<ISettingsService>();
+        var cfg = svc.Current.Clone();
+        cfg.Ai = new StockWidget.Core.Models.Ai.AiSettings
+        {
+            Enabled = false,
+            BaseUrl = "https://custom.example.com",
+            Model = "deepseek-reasoner",
+            TimeoutSeconds = 90,
+            ApiKeyEncrypted = "enc-data",
+        };
+        svc.Save(cfg);
+
+        var reloaded = svc.Reload();
+        Assert.False(reloaded.Ai.Enabled);
+        Assert.Equal("https://custom.example.com", reloaded.Ai.BaseUrl);
+        Assert.Equal("deepseek-reasoner", reloaded.Ai.Model);
+        Assert.Equal(90, reloaded.Ai.TimeoutSeconds);
+        Assert.Equal("enc-data", reloaded.Ai.ApiKeyEncrypted);
+    }
+
+    [Fact]
+    public void Clone_AiSettings_IsIndependent()
+    {
+        var svc = Provider.GetRequiredService<ISettingsService>();
+        var cfg = svc.Current.Clone();
+        cfg.Ai.Model = "changed";
+
+        Assert.NotEqual("changed", svc.Current.Ai.Model);
+    }
 }

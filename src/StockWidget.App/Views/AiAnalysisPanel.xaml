@@ -1,0 +1,106 @@
+<UserControl x:Class="StockWidget.App.Views.AiAnalysisPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource CardGradientBrush}">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 标题 -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
+            <TextBlock Text="✨ AI 行情分析" FontSize="13" FontWeight="Bold"
+                       Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- 标的 + 时间 -->
+        <StackPanel Grid.Row="1" Margin="0,0,0,8">
+            <TextBlock x:Name="StockNameText" FontSize="13" FontWeight="Bold"
+                       Foreground="{DynamicResource FgBrush}" TextTrimming="CharacterEllipsis" />
+            <TextBlock x:Name="AnalyzedAtText" FontSize="10"
+                       Foreground="{DynamicResource SubFgBrush}" Margin="0,2,0,0" />
+        </StackPanel>
+
+        <!-- 内容（可滚动） -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel x:Name="ContentRoot">
+
+                <!-- Loading -->
+                <StackPanel x:Name="LoadingSection" Visibility="Collapsed" Margin="0,24,0,0">
+                    <TextBlock Text="✨ AI 正在分析..." FontSize="12" Foreground="{DynamicResource FgBrush}" />
+                    <TextBlock Text="正在整理最近 120 个交易日数据" FontSize="10" Margin="0,6,0,0"
+                               Foreground="{DynamicResource SubFgBrush}" />
+                    <ProgressBar IsIndeterminate="True" Height="3" Margin="0,12,0,0"
+                                 Background="{DynamicResource ControlBgBrush}"
+                                 Foreground="{DynamicResource AccentBrush}" />
+                </StackPanel>
+
+                <!-- Failure -->
+                <StackPanel x:Name="FailureSection" Visibility="Collapsed" Margin="0,24,0,0">
+                    <TextBlock Text="AI 分析失败" FontSize="12" FontWeight="Bold" Foreground="{DynamicResource FgBrush}" />
+                    <TextBlock x:Name="FailureTextBlock" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Foreground="{DynamicResource DownBrush}" />
+                    <TextBlock Text="请检查：&#x0a;• API Key&#x0a;• Base URL&#x0a;• Model&#x0a;• 网络连接"
+                               FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Foreground="{DynamicResource SubFgBrush}" />
+                    <Button x:Name="RetryButton" Content="重试" Width="90" Margin="0,12,0,0"
+                            HorizontalAlignment="Left" Click="Retry_Click" />
+                </StackPanel>
+
+                <!-- NotConfigured -->
+                <StackPanel x:Name="NotConfiguredSection" Visibility="Collapsed" Margin="0,24,0,0">
+                    <TextBlock Text="尚未配置 AI 分析" FontSize="12" FontWeight="Bold"
+                               Foreground="{DynamicResource FgBrush}" />
+                    <TextBlock Text="请先在：设置 → AI 分析&#x0a;配置 DeepSeek API。" FontSize="11" TextWrapping="Wrap"
+                               Margin="0,8,0,0" Foreground="{DynamicResource SubFgBrush}" />
+                    <Button Content="前往设置" Width="100" Margin="0,12,0,0"
+                            HorizontalAlignment="Left" Click="OpenSettings_Click" />
+                </StackPanel>
+
+                <!-- Success：结构化结果 -->
+                <StackPanel x:Name="SuccessSection" Visibility="Collapsed">
+                    <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="8" Padding="10,8" Margin="0,0,0,10">
+                        <StackPanel>
+                            <TextBlock Text="综合判断" FontSize="10" Foreground="{DynamicResource SubFgBrush}" />
+                            <TextBlock x:Name="OverallStateText" FontSize="14" FontWeight="Bold" Margin="0,3,0,0"
+                                       Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
+
+                    <TextBlock Text="摘要" FontSize="10" Foreground="{DynamicResource SubFgBrush}" />
+                    <TextBlock x:Name="SummaryText" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{DynamicResource FgBrush}" />
+
+                    <TextBlock Text="趋势结构" FontSize="10" Foreground="{DynamicResource SubFgBrush}" Margin="0,14,0,0" />
+                    <TextBlock x:Name="TrendText" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{DynamicResource FgBrush}" />
+
+                    <TextBlock Text="量价关系" FontSize="10" Foreground="{DynamicResource SubFgBrush}" Margin="0,14,0,0" />
+                    <TextBlock x:Name="VolumeText" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{DynamicResource FgBrush}" />
+
+                    <TextBlock Text="压力区域" FontSize="10" Foreground="{DynamicResource UpBrush}" Margin="0,14,0,0" />
+                    <TextBlock x:Name="ResistanceText" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{DynamicResource FgBrush}" />
+
+                    <TextBlock Text="支撑区域" FontSize="10" Foreground="{DynamicResource DownBrush}" Margin="0,14,0,0" />
+                    <TextBlock x:Name="SupportText" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{DynamicResource FgBrush}" />
+
+                    <TextBlock Text="风险观察" FontSize="10" Foreground="{DynamicResource SubFgBrush}" Margin="0,14,0,0" />
+                    <TextBlock x:Name="RiskText" FontSize="11" TextWrapping="Wrap" Margin="0,4,0,0"
+                               Foreground="{DynamicResource FgBrush}" />
+
+                    <Separator Margin="0,14,0,0" Background="{DynamicResource DividerBrush}" />
+                    <TextBlock x:Name="DisclaimerText" FontSize="10" TextWrapping="Wrap" Margin="0,8,0,0"
+                               Foreground="{DynamicResource SubFgBrush}" />
+
+                    <Button Content="🔄 重新分析" Width="110" Margin="0,14,0,6" HorizontalAlignment="Left"
+                            Click="Retry_Click" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>
