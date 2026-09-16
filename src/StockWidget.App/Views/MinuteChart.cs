@@ -47,10 +47,11 @@ public sealed class MinuteChart : FrameworkElement
             return;
         }
 
-        // 布局：价格区 74%，量能区 22%，中间 4% 间隔
+        // 布局：价格区 74%，量能区 22%（底部让出 18px 时间行）
         var priceH = h * 0.74;
-        var volTop = h * 0.78;
-        var volH = h - volTop;
+        var timeY = h - 16;            // 时间行贴窗口最底
+        var volTop = h * 0.74;
+        var volH = h - volTop - 18;
         const double gridPad = 2;
 
         var prices = new decimal[points.Count];
@@ -124,7 +125,7 @@ public sealed class MinuteChart : FrameworkElement
                 : pt.Price >= points[i - 1].Price;
             var bh = (double)(pt.Volume / maxVol) * (volH - 2);
             dc.DrawRectangle(up ? upBrush : downBrush, null,
-                new Rect(slot * slotW + slotW * 0.1, h - bh, barW, bh));
+                new Rect(slot * slotW + slotW * 0.1, h - 18 - bh, barW, bh));
         }
 
         // 左轴=价格（昨收±幅度 + 当日最高/最低，重叠去重），右轴=百分比（0% 中央）——同花顺参数
@@ -150,12 +151,12 @@ public sealed class MinuteChart : FrameworkElement
         DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
 
 
-        // 底部时间轴：当前量 / 09:30 / 11:30-13:00 / 15:00（量值与时间对齐）
+        // 底部时间行（窗口最底）：当前量 / 09:30 / 11:30-13:00 / 15:00
         var timeBrush = T("SubFgBrush");
-        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
-        DrawAxisText(dc, "09:30", 96, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
-        DrawAxisText(dc, "11:30/13:00", w / 2, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Center, timeBrush);
-        DrawAxisText(dc, "15:00", w, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Right, timeBrush);
+        DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, timeY, TextAlignment.Left, timeBrush);
+        DrawAxisText(dc, "09:30", 100, timeY, TextAlignment.Left, timeBrush);
+        DrawAxisText(dc, "11:30/13:00", w / 2, timeY, TextAlignment.Center, timeBrush);
+        DrawAxisText(dc, "15:00", w, timeY, TextAlignment.Right, timeBrush);
 
         static string Formatted(decimal v) => v.ToString("0.##", CultureInfo.CurrentCulture);
     }
