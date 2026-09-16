@@ -546,7 +546,11 @@ public partial class MainWindow : GlassWindow
         menu.Items.Add(trendItem);
 
         var themeItem = new MenuItem { Header = "🌓 切换主题" };
-        themeItem.Click += (_, _) => _vm.ToggleTheme();
+        themeItem.Click += (_, _) =>
+        {
+            App.WriteCrashLog("Diag", new Exception("切换主题菜单点击"));
+            _vm.ToggleTheme();
+        };
         menu.Items.Add(themeItem);
 
         var settingsItem = new MenuItem { Header = "⚙️ 设置中心" };

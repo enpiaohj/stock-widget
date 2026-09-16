@@ -23,7 +23,7 @@ public sealed class AppSettings
     public bool FontItalic { get; set; } = true;
 
     /// <summary>显示行间分隔线（旧版定义了配置但未实现，本版落实）。</summary>
-    public bool ShowDividers { get; set; } = false;
+    public bool ShowDividers { get; set; } = true; // 默认显示行间分割线
 
     // ---------- 刷新与显示 ----------
     /// <summary>刷新间隔（毫秒）。</summary>
