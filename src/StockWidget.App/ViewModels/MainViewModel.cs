@@ -579,11 +579,12 @@ public partial class MainViewModel : ObservableObject
         var itemsByCode = _watchlist.ToDictionary(w => w.Code, StringComparer.OrdinalIgnoreCase);
         foreach (var r in Rows)
             if (itemsByCode.TryGetValue(r.Code, out var item)) r.UpdateItem(item);
-        // 手动调整顺序 = 退出排序模式
-        if (_cfg.SortField is not null)
+        // 手动调整顺序 = 退出排序模式与分类聚集（跨分类移动否则被弹回，表现为"失效"）
+        if (_cfg.SortField is not null || _cfg.GroupByCategory)
         {
             _cfg.SortField = null;
             _cfg.SortDescending = false;
+            _cfg.GroupByCategory = false;
             _settingsService.Save(_cfg);
         }
         // 在当前排序模式（分类聚集/手动）内重排视图：行 VM 已持最新 SortOrder，
@@ -623,6 +624,7 @@ public partial class MainViewModel : ObservableObject
     /// <summary>主题切换：深色 ↔ 浅色直接互换（每次点击必然变化，不再经过 system 出现"看起来没切"）。</summary>
     public string ToggleTheme()
     {
+        App.WriteCrashLog("Diag", new Exception($"ToggleTheme: {_cfg.Theme}"));
         _cfg.Theme = _cfg.Theme is "dark" ? "light" : "dark";
         _settingsService.Save(_cfg);
         ThemeManager.Instance.Apply(_cfg.Theme);

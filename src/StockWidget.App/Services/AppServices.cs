@@ -59,6 +59,7 @@ public sealed class ThemeManager
         _originalBg = dict["BgBrush"] as SolidColorBrush;
         _originalGradient = dict["CardGradientBrush"] as LinearGradientBrush;
 
+        App.WriteCrashLog("Diag", new Exception($"ApplyDictionary: {effective}"));
         CurrentEffectiveTheme = effective;
         _dictionariesInitialized = true;
 

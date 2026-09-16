@@ -12,7 +12,7 @@ public partial class AboutWindow : GlassWindow
         InitializeComponent();
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         TitleText.Text = $"股票小插件 v{version?.Major ?? 1}.{version?.Minor ?? 0}.{version?.Build ?? 0}";
-        DeveloperText.Text = "开发者：一叶花知秋";
+        DeveloperText.Text = "开发者：Piaohj";
         HotkeyText.Text = $"快捷键：{HotkeyDisplay}";
     }
 
