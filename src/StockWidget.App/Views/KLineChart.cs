@@ -72,6 +72,47 @@ public sealed class KLineChart : FrameworkElement
             var vh = (double)(b.Volume / maxV) * (volH - 4);
             dc.DrawRectangle(brush, null, new Rect(xC - bodyW / 2, h - vh, bodyW, vh));
         }
+
+        // 右侧价格轴：区间最高 / 最低
+        var axisBrush = T("SubFgBrush");
+        DrawLabel(dc, maxP.ToString("0.##", CultureInfo.CurrentCulture), w - 2, 0,
+            TextAlignment.Right, axisBrush);
+        DrawLabel(dc, minP.ToString("0.##", CultureInfo.CurrentCulture), w - 2, priceH - 14,
+            TextAlignment.Right, axisBrush);
+
+        // 底部日期轴：首根 / 末根日期
+        DrawLabel(dc, bars[0].Date, 0, h - 13, TextAlignment.Left, axisBrush);
+        DrawLabel(dc, bars[^1].Date, w, h - 13, TextAlignment.Right, axisBrush);
+
+        // 左上 MA 值标注（末根均线值）：MA5 白 / MA10 金 / MA20 紫
+        var labelY = 2;
+        if (bars.Count >= 5)
+        {
+            var ma5 = bars.TakeLast(5).Average(b => b.Close);
+            DrawLabel(dc, $"MA5:{ma5:0.00}", 2, labelY, TextAlignment.Left, Brushes.White);
+            labelY += 14;
+        }
+        if (bars.Count >= 10)
+        {
+            var ma10 = bars.TakeLast(10).Average(b => b.Close);
+            DrawLabel(dc, $"MA10:{ma10:0.00}", 2, labelY, TextAlignment.Left, Brushes.Gold);
+            labelY += 14;
+        }
+        if (bars.Count >= 20)
+        {
+            var ma20 = bars.TakeLast(20).Average(b => b.Close);
+            DrawLabel(dc, $"MA20:{ma20:0.00}", 2, labelY, TextAlignment.Left, Brushes.MediumPurple);
+        }
+    }
+
+    private static void DrawLabel(DrawingContext dc, string text, double x, double y,
+        TextAlignment align, Brush brush)
+    {
+        if (string.IsNullOrEmpty(text)) return;
+        var ft = new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+            new Typeface("微软雅黑"), 9, brush, 1.25);
+        ft.TextAlignment = align;
+        dc.DrawText(ft, new Point(x, y));
     }
 
     private void DrawMa(DrawingContext dc, IReadOnlyList<DailyKlineEntity> bars, int n,

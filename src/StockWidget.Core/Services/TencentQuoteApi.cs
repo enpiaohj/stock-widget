@@ -31,7 +31,8 @@ public sealed record MinuteLineData
     public decimal? PrevClose { get; init; }
 }
 
-public sealed record MinutePoint(string Time, decimal Price);
+/// <summary>单个分时点：HHmm 时间 + 价格 + 该分钟成交量（手，非累计；由累计量差分得到）。</summary>
+public sealed record MinutePoint(string Time, decimal Price, decimal Volume);
 
 public sealed class TencentQuoteApi : ITencentQuoteApi, IDisposable
 {
@@ -232,6 +233,9 @@ public static class TencentResponseParser
             var rows = data.GetProperty("data");
 
             var points = new List<MinutePoint>(rows.GetArrayLength());
+            // 行格式 "HHmm price 累计量(手)"：seg[2] 为当日累计成交量，逐行差分得到每分钟量
+            decimal cum = 0m, prevCum = 0m;
+            var i = 0;
             foreach (var row in rows.EnumerateArray())
             {
                 var s = row.GetString();
@@ -239,7 +243,16 @@ public static class TencentResponseParser
                 var seg = s.Split(' ');
                 if (seg.Length < 2) continue;
                 if (decimal.TryParse(seg[1], NumberStyles.Float, CultureInfo.InvariantCulture, out var p))
-                    points.Add(new MinutePoint(seg[0], p));
+                {
+                    if (seg.Length > 2)
+                        decimal.TryParse(seg[2], NumberStyles.Float, CultureInfo.InvariantCulture, out cum);
+                    else
+                        cum = prevCum; // 缺累计量列：该分钟量按 0 处理
+                    var vol = i == 0 ? cum : Math.Max(0, cum - prevCum);
+                    prevCum = cum;
+                    points.Add(new MinutePoint(seg[0], p, vol));
+                    i++;
+                }
             }
 
             decimal? prevClose = null;

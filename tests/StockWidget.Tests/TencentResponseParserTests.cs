@@ -100,6 +100,24 @@ public class TencentResponseParserTests
     }
 
     [Fact]
+    public void ParseMinute_ExtractsPerMinuteVolume()
+    {
+        // 行格式 "HHmm price 累计量(手)"：100/350/350 → 分钟量 100/250/0
+        var json = """
+        {"code":0,"msg":"","data":{"sh600390":{"data":{"data":["0930 10.50 100","0931 10.60 350","0932 10.40 350"],"date":"20260916"},
+          "qt":{"v_sh600390":["1","中钨高新","600390","10.50","10.40","10.40","100"]}}}}
+        """;
+        using var doc = JsonDocument.Parse(json);
+        var minute = TencentResponseParser.ParseMinute(doc.RootElement, "sh600390");
+
+        Assert.NotNull(minute);
+        Assert.Equal(3, minute!.Points.Count);
+        Assert.Equal(100m, minute.Points[0].Volume); // 首分钟=累计
+        Assert.Equal(250m, minute.Points[1].Volume); // 350-100
+        Assert.Equal(0m, minute.Points[2].Volume);   // 350-350
+    }
+
+    [Fact]
     public void ParseMinute_BadCode_ReturnsNull()
     {
         using var doc = JsonDocument.Parse("""{"code":1,"msg":"error","data":{}}""");
