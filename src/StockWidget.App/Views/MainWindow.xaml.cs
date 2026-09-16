@@ -225,7 +225,8 @@ public partial class MainWindow : GlassWindow
                      + groupCountHeader()
                      + 22                // 列表头
                      + 22                // 量能栏
-                     + 8;                // 边距
+                     + 8                 // 边距
+                     + rowH;             // 底部预留一行股票位置
         var maxH = SystemParameters.WorkArea.Height - 10;
         Height = Math.Clamp(height, 240, maxH);
     }
