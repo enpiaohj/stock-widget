@@ -38,8 +38,8 @@
 
     <!-- 卡片渐变底（顶部高光 + 下部主色） -->
     <LinearGradientBrush x:Key="CardGradientBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#FF23232A" Offset="0" />
-        <GradientStop Color="#FF181820" Offset="1" />
+        <GradientStop Color="#FF2E3039" Offset="0" />
+        <GradientStop Color="#FF23252E" Offset="1" />
     </LinearGradientBrush>
     <SolidColorBrush x:Key="CardShadowBrush" Color="#8A000000" />
     <Color x:Key="CardShadowEffectBrush">#FF000000</Color>
