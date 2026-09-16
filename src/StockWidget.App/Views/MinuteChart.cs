@@ -47,10 +47,10 @@ public sealed class MinuteChart : FrameworkElement
             return;
         }
 
-        // 布局：价格区 74%，量能区 22%（底部让出 18px 时间行）
+        // 布局：价格区 74%，间隔带 4%（时间标签），量能区 22% 减底部 18px（量值行）
         var priceH = h * 0.74;
-        var timeY = h - 16;            // 时间行贴窗口最底
-        var volTop = h * 0.74;
+        var volTop = h * 0.78;
+        var timeY = h - 16;            // 量值行贴窗口最底
         var volH = h - volTop - 18;
         const double gridPad = 2;
 
@@ -151,12 +151,12 @@ public sealed class MinuteChart : FrameworkElement
         DrawAxisText(dc, $"-{devPct:0.0#}%", w - 2, priceH - 14, TextAlignment.Right, T("DownBrush"));
 
 
-        // 底部时间行（窗口最底）：当前量 / 09:30 / 11:30-13:00 / 15:00
+        // 时间标签回原位（价格区与量区间隔带）；量值单独贴窗口最底
         var timeBrush = T("SubFgBrush");
+        DrawAxisText(dc, "09:30", 0, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Left, timeBrush);
+        DrawAxisText(dc, "11:30/13:00", w / 2, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Center, timeBrush);
+        DrawAxisText(dc, "15:00", w, priceH + (volTop - priceH) / 2 - 7, TextAlignment.Right, timeBrush);
         DrawAxisText(dc, $"量 {points[^1].Volume:N0}", 2, timeY, TextAlignment.Left, timeBrush);
-        DrawAxisText(dc, "09:30", 100, timeY, TextAlignment.Left, timeBrush);
-        DrawAxisText(dc, "11:30/13:00", w / 2, timeY, TextAlignment.Center, timeBrush);
-        DrawAxisText(dc, "15:00", w, timeY, TextAlignment.Right, timeBrush);
 
         static string Formatted(decimal v) => v.ToString("0.##", CultureInfo.CurrentCulture);
     }
