@@ -7,6 +7,7 @@ using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using System.Windows.Data;
 using System.Windows.Threading;
 using StockWidget.App.Services;
 using StockWidget.App.ViewModels;
@@ -205,11 +206,24 @@ public partial class MainWindow : GlassWindow
     /// 按内容自适应窗口尺寸（旧版语义）：宽 = 列宽合计 + 边距；高 = 行数 × 行高 + 表头与量能栏。
     /// 超出工作区时钳制（此时表格内部滚动兜底），避免列被硬裁剪只见前几列。
     /// </summary>
-    /// <summary>分组头总高：分组模式（渲染组头）时按分类数预留，否则 0。</summary>
-    private double groupCountHeader() =>
-        _vm.Settings.GroupByCategory && _vm.Rows.Count > 0
-            ? _vm.Rows.Select(r => r.CategoryName).Distinct().Count() * 26
-            : 0;
+    private const double GroupHeaderHeight = 24;
+
+    /// <summary>仅为实际渲染的非空分组头预留高度。</summary>
+    private double GroupHeaderTotalHeight()
+    {
+        var rowsView = _vm.RowsView;
+        if (!_vm.Settings.GroupByCategory
+            || rowsView is null
+            || !rowsView.GroupDescriptions
+                .OfType<PropertyGroupDescription>()
+                .Any(group => group.PropertyName == nameof(StockRowViewModel.CategoryName)))
+            return 0;
+
+        return (rowsView.Groups?
+                    .OfType<CollectionViewGroup>()
+                    .Count(group => group.ItemCount > 0)
+                ?? 0) * GroupHeaderHeight;
+    }
 
     private void AutoSizeWindow()
     {
@@ -222,7 +236,7 @@ public partial class MainWindow : GlassWindow
         var rows = _vm.Rows.Count;
         var rowH = Grid.RowHeight is double rh && !double.IsNaN(rh) ? rh : 30.0;
         var height = rows * rowH
-                     + groupCountHeader()
+                     + GroupHeaderTotalHeight()
                      + 22                // 列表头
                      + 22                // 量能栏
                      + 8                 // 边距

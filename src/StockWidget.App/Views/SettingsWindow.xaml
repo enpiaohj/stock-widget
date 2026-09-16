@@ -219,8 +219,12 @@
                             <StackPanel>
                                 <TextBlock Text="系统" Style="{StaticResource CardHeaderText}" />
                                 <CheckBox x:Name="AutoStartCheck" Content="开机自动启动" Margin="0,2" />
-                                <CheckBox x:Name="GroupByCategoryCheck" Content="按 指数 / A股 / ETF 自动分组" Margin="0,2" />
+                                <CheckBox x:Name="GroupByCategoryCheck" Content="按市场分类自动分组" Margin="0,2" />
                                 <CheckBox x:Name="ShowSparklineCheck" Content="显示迷你走势列（当日分时快照）" Margin="0,2" />
+                                <TextBlock Text="分组颜色" Style="{StaticResource CardHeaderText}" Margin="0,12,0,5" />
+                                <StackPanel x:Name="CategoryColorPanel" />
+                                <Button Content="恢复默认分组颜色" Width="140" HorizontalAlignment="Left" Margin="0,8,0,0"
+                                        Click="ResetCategoryColors_Click" />
                                 <TextBlock Text="强调色" Style="{StaticResource CardHeaderText}" Margin="0,12,0,5" />
                                 <WrapPanel x:Name="AccentPanel" />
                             </StackPanel>

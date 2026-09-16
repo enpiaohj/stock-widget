@@ -74,6 +74,18 @@ public sealed class AppSettings
     /// <summary>强调色 key（见 AccentPalette.All），空 = 默认橙。</summary>
     public string AccentColor { get; set; } = "";
 
+    // ---------- 增强：分组条颜色 ----------
+    /// <summary>
+    /// 市场分组条颜色覆盖：key 为分类（index/etf/hongkong/usstock/stock），
+    /// value 为色板 key（见 AccentPalette.All）；缺失或空 = 使用主题默认分类色。
+    /// </summary>
+    public Dictionary<string, string> CategoryColors { get; set; } = [];
+
     /// <summary>克隆（设置对话框取消恢复用）。</summary>
-    public AppSettings Clone() => (AppSettings)MemberwiseClone();
+    public AppSettings Clone()
+    {
+        var clone = (AppSettings)MemberwiseClone();
+        clone.CategoryColors = new Dictionary<string, string>(CategoryColors);
+        return clone;
+    }
 }

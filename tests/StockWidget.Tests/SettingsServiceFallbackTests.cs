@@ -26,4 +26,40 @@ public class SettingsServiceFallbackTests : DatabaseTestBase
         var reloaded = svc.Reload();
         Assert.NotEmpty(reloaded.CustomFields);
     }
+
+    [Fact]
+    public void Default_CategoryColors_IsEmpty()
+    {
+        var svc = Provider.GetRequiredService<ISettingsService>();
+        Assert.Empty(svc.Current.CategoryColors);
+    }
+
+    [Fact]
+    public void CategoryColors_RoundTripsThroughSaveAndReload()
+    {
+        var svc = Provider.GetRequiredService<ISettingsService>();
+        var cfg = svc.Current.Clone();
+        cfg.CategoryColors = new Dictionary<string, string>
+        {
+            ["index"] = "blue",
+            ["stock"] = "red",
+        };
+        svc.Save(cfg);
+
+        var reloaded = svc.Reload();
+        Assert.Equal(2, reloaded.CategoryColors.Count);
+        Assert.Equal("blue", reloaded.CategoryColors["index"]);
+        Assert.Equal("red", reloaded.CategoryColors["stock"]);
+    }
+
+    [Fact]
+    public void Clone_CategoryColors_IsIndependent()
+    {
+        var svc = Provider.GetRequiredService<ISettingsService>();
+        var cfg = svc.Current.Clone();
+        cfg.CategoryColors["index"] = "purple";
+
+        // Clone 的字典不应与 Current 共享引用（取消设置时不得污染原值）
+        Assert.DoesNotContain("index", svc.Current.CategoryColors);
+    }
 }

@@ -61,14 +61,14 @@ public partial class StockRowViewModel : ObservableObject
     /// <summary>通用更新通知：刷新所有索引器绑定。</summary>
     public void NotifyAllCells() => OnPropertyChanged("Item[]");
 
-    /// <summary>分组名（指数 / A股 / ETF / 港股 / 美股）。</summary>
+    /// <summary>分组名（沪深指数 / 沪深个股 / ETF基金 / 香港股票 / 美国股票）。</summary>
     public string CategoryName => Info.Category switch
     {
-        StockCategory.Index => "指数",
-        StockCategory.Etf => "ETF",
-        StockCategory.HongKong => "港股",
-        StockCategory.UsStock => "美股",
-        _ => "A股",
+        StockCategory.Index => "沪深指数",
+        StockCategory.Etf => "ETF基金",
+        StockCategory.HongKong => "香港股票",
+        StockCategory.UsStock => "美国股票",
+        _ => "沪深个股",
     };
 
     /// <summary>按字段 key 取排序值。</summary>

@@ -45,8 +45,8 @@ public partial class MainViewModel : ObservableObject
     /// <summary>休市探测间隔（毫秒）：市场关闭时每个 tick 拉长到此，减少无效请求。</summary>
     private static readonly TimeSpan MarketProbeInterval = TimeSpan.FromSeconds(600);
 
-    /// <summary>分组显示顺序（指数 / ETF / 个股 / 港股 / 美股）。</summary>
-    private static readonly string[] CategoryOrder = ["指数", "A股", "ETF", "港股", "美股"];
+    /// <summary>分组显示顺序（沪深指数 / ETF基金 / 香港股票 / 美国股票 / 沪深个股）。</summary>
+    private static readonly string[] CategoryOrder = ["沪深指数", "ETF基金", "香港股票", "美国股票", "沪深个股"];
 
     public ObservableCollection<StockRowViewModel> Rows { get; } = [];
 
@@ -176,6 +176,7 @@ public partial class MainViewModel : ObservableObject
         _refreshTimer.Interval = TimeSpan.FromMilliseconds(Math.Max(1000, _cfg.RefreshIntervalMs));
         ThemeManager.Instance.Apply(_cfg.Theme);
         ThemeManager.Instance.ApplyAccent(_cfg.AccentColor);
+        ThemeManager.Instance.ApplyCategoryColors(_cfg.CategoryColors);
         // 透明度：仅背景 alpha 透桌面，文字/数据保持不透明（整窗 Opacity 会把文字一起变透明）
         // 必须在主题字典加载之后调用（基于新主题的原始刷克隆）
         ThemeManager.Instance.ApplyOpacity(_cfg.OpacityPercent);
@@ -208,7 +209,7 @@ public partial class MainViewModel : ObservableObject
         if (RowsView is null) return;
 
         RowsView.SortDescriptions.Clear();
-        // 分组模式：挂分组描述渲染组头（指数/ETF/个股…），组间按分类序、组内按手动顺序
+        // 分组模式：挂分组描述渲染组头，组间按市场分类序、组内按手动顺序
         RowsView.GroupDescriptions.Clear();
         if (_cfg.GroupByCategory)
             RowsView.GroupDescriptions.Add(
@@ -419,7 +420,22 @@ public partial class MainViewModel : ObservableObject
             parts.Add(timePart);
         }
 
+        parts.Add(ProductVersionText);
+
         return string.Join(" / ", parts);
+    }
+
+    /// <summary>产品名与版本（取自程序集，随 csproj 的 Version/Product 自动更新）。</summary>
+    private static string ProductVersionText { get; } = BuildProductVersionText();
+
+    private static string BuildProductVersionText()
+    {
+        var asm = System.Reflection.Assembly.GetExecutingAssembly();
+        var name = (Attribute.GetCustomAttribute(asm, typeof(System.Reflection.AssemblyProductAttribute))
+                    as System.Reflection.AssemblyProductAttribute)?.Product;
+        if (string.IsNullOrWhiteSpace(name)) name = "股票小插件";
+        var v = asm.GetName().Version ?? new Version(0, 0, 0);
+        return $"{name} v{v.Major}.{v.Minor}.{v.Build}";
     }
 
     private void UpdateStatusText() => StatusText = BuildStatusSuffix();

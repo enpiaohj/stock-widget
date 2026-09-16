@@ -532,23 +532,63 @@
         </Setter>
     </Style>
 
-    <!-- 分组头 -->
+    <!-- 分组头：市场分类的紧凑全宽区段 -->
     <Style x:Key="CategoryGroupHeaderStyle" TargetType="GroupItem">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GroupItem">
-                    <StackPanel>
-                        <Border Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
-                                Padding="8,2" Margin="0,2,0,3" HorizontalAlignment="Left">
-                            <StackPanel Orientation="Horizontal">
-                            <Border Width="3" CornerRadius="1.5" Background="{DynamicResource AccentBrush}"
-                                    VerticalAlignment="Stretch" Margin="0,0,7,0" />
-                            <TextBlock Text="{Binding Name}" FontSize="11" FontWeight="Bold"
-                                       Foreground="{DynamicResource AccentBrush}" />
-                        </StackPanel>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="24" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Border x:Name="groupHeader" Background="{DynamicResource CategoryIndexSoftBrush}"
+                                SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="3" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Border x:Name="categoryBar" Background="{DynamicResource CategoryIndexBrush}"
+                                        CornerRadius="1.5" Margin="0,4" />
+                                <TextBlock x:Name="categoryName" Grid.Column="1" Text="{Binding Name}"
+                                           Margin="8,0" VerticalAlignment="Center" FontSize="11" FontWeight="Bold"
+                                           Foreground="{DynamicResource CategoryIndexBrush}" />
+                                <TextBlock x:Name="categoryCount" Grid.Column="2"
+                                           Text="{Binding ItemCount, StringFormat={}{0} 只}"
+                                           Margin="8,0,10,0" VerticalAlignment="Center" FontSize="10"
+                                           Foreground="{DynamicResource CategoryIndexBrush}" />
+                            </Grid>
                         </Border>
-                        <ItemsPresenter />
-                    </StackPanel>
+                        <ItemsPresenter Grid.Row="1" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <DataTrigger Binding="{Binding Name}" Value="ETF基金">
+                            <Setter TargetName="groupHeader" Property="Background" Value="{DynamicResource CategoryEtfSoftBrush}" />
+                            <Setter TargetName="categoryBar" Property="Background" Value="{DynamicResource CategoryEtfBrush}" />
+                            <Setter TargetName="categoryName" Property="Foreground" Value="{DynamicResource CategoryEtfBrush}" />
+                            <Setter TargetName="categoryCount" Property="Foreground" Value="{DynamicResource CategoryEtfBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Name}" Value="香港股票">
+                            <Setter TargetName="groupHeader" Property="Background" Value="{DynamicResource CategoryHongKongSoftBrush}" />
+                            <Setter TargetName="categoryBar" Property="Background" Value="{DynamicResource CategoryHongKongBrush}" />
+                            <Setter TargetName="categoryName" Property="Foreground" Value="{DynamicResource CategoryHongKongBrush}" />
+                            <Setter TargetName="categoryCount" Property="Foreground" Value="{DynamicResource CategoryHongKongBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Name}" Value="美国股票">
+                            <Setter TargetName="groupHeader" Property="Background" Value="{DynamicResource CategoryUsStockSoftBrush}" />
+                            <Setter TargetName="categoryBar" Property="Background" Value="{DynamicResource CategoryUsStockBrush}" />
+                            <Setter TargetName="categoryName" Property="Foreground" Value="{DynamicResource CategoryUsStockBrush}" />
+                            <Setter TargetName="categoryCount" Property="Foreground" Value="{DynamicResource CategoryUsStockBrush}" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding Name}" Value="沪深个股">
+                            <Setter TargetName="groupHeader" Property="Background" Value="{DynamicResource CategoryStockSoftBrush}" />
+                            <Setter TargetName="categoryBar" Property="Background" Value="{DynamicResource CategoryStockBrush}" />
+                            <Setter TargetName="categoryName" Property="Foreground" Value="{DynamicResource CategoryStockBrush}" />
+                            <Setter TargetName="categoryCount" Property="Foreground" Value="{DynamicResource CategoryStockBrush}" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

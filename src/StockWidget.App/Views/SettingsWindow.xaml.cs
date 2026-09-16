@@ -48,6 +48,7 @@ public partial class SettingsWindow : GlassWindow
             {
                 ThemeManager.Instance.Apply(_original.Theme);
                 ThemeManager.Instance.ApplyAccent(_original.AccentColor);
+                ThemeManager.Instance.ApplyCategoryColors(_original.CategoryColors);
             }
         };
 
@@ -98,6 +99,9 @@ public partial class SettingsWindow : GlassWindow
         // 强调色选择
         BuildAccentPicker();
 
+        // 分组颜色选择
+        BuildCategoryColorPicker();
+
         DataDirText.Text = $"数据库位置：{DbPathResolver.GetDatabasePath()}";
     }
 
@@ -137,6 +141,69 @@ public partial class SettingsWindow : GlassWindow
             };
             AccentPanel.Children.Add(rb);
         }
+    }
+
+    /// <summary>市场分类 key 与显示名的对应（与 AppSettings.CategoryColors 的键一致）。</summary>
+    private static readonly (string Key, string Label)[] CategoryColorRows =
+    [
+        ("index", "沪深指数"),
+        ("etf", "ETF基金"),
+        ("hongkong", "香港股票"),
+        ("usstock", "美国股票"),
+        ("stock", "沪深个股"),
+    ];
+
+    /// <summary>在「通用」标签内构建分组颜色选择区：每行一个分类 + 预设色板单选。</summary>
+    private void BuildCategoryColorPicker()
+    {
+        CategoryColorPanel.Children.Clear();
+        foreach (var (catKey, label) in CategoryColorRows)
+        {
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 2, 0, 2) };
+            var labelBlock = new TextBlock
+            {
+                Text = label,
+                Width = 68,
+                VerticalAlignment = VerticalAlignment.Center,
+                FontSize = 11,
+            };
+            labelBlock.SetResourceReference(TextBlock.ForegroundProperty, "FgBrush");
+            row.Children.Add(labelBlock);
+
+            _working.CategoryColors.TryGetValue(catKey, out var selected);
+            foreach (var pal in AccentPalette.All)
+            {
+                var rb = new System.Windows.Controls.RadioButton
+                {
+                    GroupName = $"Category_{catKey}",
+                    Tag = pal.Key,
+                    IsChecked = string.Equals(selected, pal.Key, StringComparison.OrdinalIgnoreCase),
+                    Margin = new Thickness(0, 0, 10, 0),
+                    ToolTip = $"{label}：{pal.Name}",
+                    Content = new Border
+                    {
+                        Width = 20,
+                        Height = 20,
+                        CornerRadius = new CornerRadius(5),
+                        Background = AccentRgbBrush(pal.AccentRgb),
+                    },
+                };
+                rb.Checked += (_, _) =>
+                {
+                    _working.CategoryColors[catKey] = (string)rb.Tag;
+                    ThemeManager.Instance.ApplyCategoryColors(_working.CategoryColors); // 实时预览
+                };
+                row.Children.Add(rb);
+            }
+            CategoryColorPanel.Children.Add(row);
+        }
+    }
+
+    private void ResetCategoryColors_Click(object sender, RoutedEventArgs e)
+    {
+        _working.CategoryColors.Clear();
+        ThemeManager.Instance.ApplyCategoryColors(_working.CategoryColors);
+        BuildCategoryColorPicker();
     }
 
     private void BuildFieldPanels()

@@ -19,6 +19,18 @@
     <SolidColorBrush x:Key="AccentBrush" Color="#FFA843" />
     <SolidColorBrush x:Key="AccentSoftBrush" Color="#33FFA843" />
 
+    <!-- 市场分类色：不跟随用户强调色，避免分组辨识度丢失 -->
+    <SolidColorBrush x:Key="CategoryIndexBrush" Color="#55B6FF" />
+    <SolidColorBrush x:Key="CategoryIndexSoftBrush" Color="#1C55B6FF" />
+    <SolidColorBrush x:Key="CategoryEtfBrush" Color="#C68DF2" />
+    <SolidColorBrush x:Key="CategoryEtfSoftBrush" Color="#1CC68DF2" />
+    <SolidColorBrush x:Key="CategoryHongKongBrush" Color="#F6B64B" />
+    <SolidColorBrush x:Key="CategoryHongKongSoftBrush" Color="#1CF6B64B" />
+    <SolidColorBrush x:Key="CategoryUsStockBrush" Color="#59C98B" />
+    <SolidColorBrush x:Key="CategoryUsStockSoftBrush" Color="#1C59C98B" />
+    <SolidColorBrush x:Key="CategoryStockBrush" Color="#F08080" />
+    <SolidColorBrush x:Key="CategoryStockSoftBrush" Color="#1CF08080" />
+
     <!-- 表格 -->
     <SolidColorBrush x:Key="RowHoverBrush" Color="#1AFFFFFF" />
     <SolidColorBrush x:Key="RowSelectedBrush" Color="#33689BE8" />

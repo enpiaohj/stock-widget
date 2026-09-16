@@ -65,11 +65,12 @@ public sealed class ThemeManager
         CurrentEffectiveTheme = effective;
         _dictionariesInitialized = true;
 
-        // 关键：顶层覆盖刷（强调色/透明度）不随字典切换自动重算，必须重放
+        // 关键：顶层覆盖刷（强调色/透明度/分组色）不随字典切换自动重算，必须重放
         // 否则切换主题后窗口仍显示旧主题背景（表现为"切换主题无效"）
         if (_lastAccentKey is not null)
             ApplyAccentInternal(_lastAccentKey);
         ApplyOpacityInternal(_lastOpacityPercent);
+        ApplyCategoryColorsInternal();
 
         foreach (Window w in app.Windows)
         {
@@ -111,6 +112,52 @@ public sealed class ThemeManager
         app.Resources["GroupHeaderBrush"] = ToBrush(pal.Strong);
         app.Resources["MenuHoverBrush"] = ToBrush(pal.Soft);
         app.Resources["ControlBorderBrush"] = ToBrush(pal.Soft);
+    }
+
+    // ---------------------------
+    // 市场分组条颜色覆盖（index/etf/hongkong/usstock/stock → 色板 key）
+    // ---------------------------
+
+    private static readonly (string Category, string Brush)[] CategoryBrushKeys =
+    [
+        ("index", "CategoryIndex"),
+        ("etf", "CategoryEtf"),
+        ("hongkong", "CategoryHongKong"),
+        ("usstock", "CategoryUsStock"),
+        ("stock", "CategoryStock"),
+    ];
+
+    private IReadOnlyDictionary<string, string> _lastCategoryColors = new Dictionary<string, string>();
+
+    /// <summary>
+    /// 按分类覆盖分组条刷（主色不透明 + 13% alpha 背景）；缺失/空 = 移除覆盖，回落主题字典默认。
+    /// 与强调色同理：顶层覆盖不随主题字典切换重算，ApplyDictionary 内负责重放。
+    /// </summary>
+    public void ApplyCategoryColors(IReadOnlyDictionary<string, string>? colors)
+    {
+        _lastCategoryColors = colors is null
+            ? new Dictionary<string, string>()
+            : new Dictionary<string, string>(colors);
+        ApplyCategoryColorsInternal();
+    }
+
+    private void ApplyCategoryColorsInternal()
+    {
+        var app = Application.Current;
+        foreach (var (category, brush) in CategoryBrushKeys)
+        {
+            var paletteKey = _lastCategoryColors.GetValueOrDefault(category);
+            if (string.IsNullOrWhiteSpace(paletteKey))
+            {
+                app.Resources.Remove($"{brush}Brush");
+                app.Resources.Remove($"{brush}SoftBrush");
+                continue;
+            }
+
+            var rgb = AccentPalette.FromKey(paletteKey).AccentRgb;
+            app.Resources[$"{brush}Brush"] = ToBrush(AccentPalette.Rgba(rgb, 0xFF));
+            app.Resources[$"{brush}SoftBrush"] = ToBrush(AccentPalette.Rgba(rgb, 0x1C));
+        }
     }
 
     /// <summary>ARGB-as-long（0xAARRGGBB）→ 画笔；移位后掩去高 8 位以防符号扩展。</summary>
