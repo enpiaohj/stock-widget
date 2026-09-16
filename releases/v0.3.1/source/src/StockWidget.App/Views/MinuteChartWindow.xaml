@@ -1,0 +1,142 @@
+<views:GlassWindow x:Class="StockWidget.App.Views.MinuteChartWindow"
+                   xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                   xmlns:views="clr-namespace:StockWidget.App.Views"
+                   Title="分时走势"
+                   Width="720" Height="440"
+                   WindowStartupLocation="CenterOwner"
+                   ResizeMode="NoResize" ShowInTaskbar="True"
+                   Background="{DynamicResource BgBrush}">
+    <views:GlassWindow.Resources>
+        <!-- 页签按钮：选中用强调色底 -->
+        <Style x:Key="TabStyle" TargetType="ToggleButton">
+            <Setter Property="Background" Value="{DynamicResource ControlBgBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource ControlHoverBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource AccentSoftBrush}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </views:GlassWindow.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Grid Grid.Column="0" Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <!-- 名称 / 代码 / 价格 / 涨跌幅 一组紧凑靠左 -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock x:Name="NameText" FontSize="15" FontWeight="Bold"
+                           Foreground="{DynamicResource FgBrush}" MaxWidth="180"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="0,0,10,0" />
+                <TextBlock x:Name="CodeText" FontSize="12" VerticalAlignment="Center"
+                           Foreground="{DynamicResource SubFgBrush}" Margin="0,0,10,0" />
+                <TextBlock x:Name="PriceText" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                <TextBlock x:Name="ChangeText" FontSize="12" Margin="10,0,0,0" VerticalAlignment="Center" />
+            </StackPanel>
+            <Border x:Name="ClosedBadge" Grid.Column="1" Background="{DynamicResource AccentSoftBrush}" CornerRadius="5"
+                    Padding="8,2" Margin="12,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left"
+                    Visibility="Collapsed">
+                <TextBlock Text="休市 / 无数据" FontSize="10" Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+            <!-- 窗口操作：AI 分析 / 最小化 / 全屏（还原） / 关闭 -->
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,-6,0">
+                <Button x:Name="AiAnalysisButton" Content="✨ AI分析" Width="88" Margin="0,0,8,0"
+                        Click="AiAnalysis_Click" VerticalAlignment="Center"
+                        ToolTip="基于本地行情与历史日K的 AI 行情解读" />
+                <Button Content="—" Width="34" Click="Minimize_Click" ToolTip="最小化"
+                        VerticalAlignment="Center" />
+                <Button x:Name="FullScreenButton" Content="⛶ 全屏" Width="72" Margin="6,0,0,0"
+                        Click="FullScreen_Click" VerticalAlignment="Center" ToolTip="全屏" />
+                <Button x:Name="CloseButton" Content="✕ 关闭" Width="80" Margin="6,0,0,0"
+                        Click="Close_Click" VerticalAlignment="Center" ToolTip="关闭" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 分时 / 日K 页签 -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,6,0,0">
+            <ToggleButton x:Name="TabMinute" Content="分时" IsChecked="True" Width="60"
+                          Padding="0,4" Style="{StaticResource TabStyle}" Click="TabMinute_Click" />
+            <ToggleButton x:Name="TabKline" Content="日K" Width="60" Padding="0,4"
+                          Margin="6,0,0,0" Style="{StaticResource TabStyle}" Click="TabKline_Click" />
+        </StackPanel>
+
+        <Border x:Name="MinutePanel" Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="10" Margin="0,12,0,0">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="InfoText" FontSize="10" Foreground="{DynamicResource SubFgBrush}" />
+                <views:MinuteChart x:Name="Chart" Grid.Row="1" Margin="0,4" />
+                <Grid Grid.Row="2" />
+            </Grid>
+        </Border>
+
+        <!-- 日K页（初始隐藏） -->
+        <Border x:Name="KlinePanel" Grid.Row="2" Background="{DynamicResource CardBrush}" CornerRadius="10"
+                Margin="0,12,0,0" Visibility="Collapsed">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <TextBlock x:Name="RangeTextK" Grid.Row="0" FontSize="11"
+                           Foreground="{DynamicResource SubFgBrush}" />
+                <views:KLineChart x:Name="KlineChart" Grid.Row="1" Margin="0,4" />
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="3">
+            <TextBlock x:Name="VolumeText" FontSize="11" Foreground="{DynamicResource SubFgBrush}" HorizontalAlignment="Left" />
+            <TextBlock x:Name="TimeText" FontSize="11" Foreground="{DynamicResource SubFgBrush}"
+                   HorizontalAlignment="Right" />
+        </Grid>
+        </Grid>
+
+        <!-- AI 分析侧面板（默认收起） -->
+        <Border Grid.Column="1" x:Name="AiPanelHost" Width="320" Visibility="Collapsed"
+                Background="{DynamicResource CardGradientBrush}"
+                BorderBrush="{DynamicResource DividerBrush}" BorderThickness="1,0,0,0">
+            <ContentControl x:Name="AiPanelHostContent" />
+        </Border>
+    </Grid>
+</views:GlassWindow>
