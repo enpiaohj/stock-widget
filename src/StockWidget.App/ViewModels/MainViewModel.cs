@@ -46,7 +46,7 @@ public partial class MainViewModel : ObservableObject
     private static readonly TimeSpan MarketProbeInterval = TimeSpan.FromSeconds(600);
 
     /// <summary>分组显示顺序（指数 / ETF / 个股 / 港股 / 美股）。</summary>
-    private static readonly string[] CategoryOrder = ["指数", "ETF", "个股", "港股", "美股"];
+    private static readonly string[] CategoryOrder = ["指数", "沪深A股", "ETF基金", "港股", "美股"];
 
     public ObservableCollection<StockRowViewModel> Rows { get; } = [];
 

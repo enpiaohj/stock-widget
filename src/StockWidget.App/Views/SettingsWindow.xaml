@@ -219,7 +219,7 @@
                             <StackPanel>
                                 <TextBlock Text="系统" Style="{StaticResource CardHeaderText}" />
                                 <CheckBox x:Name="AutoStartCheck" Content="开机自动启动" Margin="0,2" />
-                                <CheckBox x:Name="GroupByCategoryCheck" Content="按 指数 / ETF / 个股 自动分组" Margin="0,2" />
+                                <CheckBox x:Name="GroupByCategoryCheck" Content="按 指数 / 沪深A股 / ETF基金 自动分组" Margin="0,2" />
                                 <CheckBox x:Name="ShowSparklineCheck" Content="显示迷你走势列（当日分时快照）" Margin="0,2" />
                                 <TextBlock Text="强调色" Style="{StaticResource CardHeaderText}" Margin="0,12,0,5" />
                                 <WrapPanel x:Name="AccentPanel" />
