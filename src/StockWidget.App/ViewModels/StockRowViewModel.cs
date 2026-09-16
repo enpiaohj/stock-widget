@@ -65,10 +65,10 @@ public partial class StockRowViewModel : ObservableObject
     public string CategoryName => Info.Category switch
     {
         StockCategory.Index => "指数",
-        StockCategory.Etf => "ETF基金",
+        StockCategory.Etf => "ETF",
         StockCategory.HongKong => "港股",
         StockCategory.UsStock => "美股",
-        _ => "沪深A股",
+        _ => "A股",
     };
 
     /// <summary>按字段 key 取排序值。</summary>
