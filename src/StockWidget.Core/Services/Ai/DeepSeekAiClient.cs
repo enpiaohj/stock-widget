@@ -20,6 +20,9 @@ public interface IAiApiClient : IDisposable
     /// <summary>发送一次对话补全，返回模型 content 文本。失败抛 AiApiException（用户可读）。</summary>
     Task<string> CompleteAsync(string baseUrl, string apiKey, string model,
         string systemPrompt, string userPrompt, int timeoutSeconds, CancellationToken ct = default);
+
+    /// <summary>获取可用模型 ID 列表（GET {base}/models）。失败抛 AiApiException（用户可读）。</summary>
+    Task<List<string>> GetModelsAsync(string baseUrl, string apiKey, int timeoutSeconds, CancellationToken ct = default);
 }
 
 /// <summary>DeepSeek chat/completions 客户端（OpenAI 兼容协议）。</summary>
@@ -86,6 +89,50 @@ public sealed class DeepSeekAiClient(HttpMessageHandler? handler = null) : IAiAp
         429 => new AiApiException("HTTP 429：请求过于频繁或当前额度受限。", status),
         _ => new AiApiException($"HTTP {status}：DeepSeek 服务端错误，请稍后重试。", status),
     };
+
+    public async Task<List<string>> GetModelsAsync(string baseUrl, string apiKey, int timeoutSeconds, CancellationToken ct = default)
+    {
+        var url = baseUrl.TrimEnd('/') + "/models";
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        cts.CancelAfter(TimeSpan.FromSeconds(Math.Clamp(timeoutSeconds, 1, 300)));
+
+        try
+        {
+            using var req = new HttpRequestMessage(HttpMethod.Get, url);
+            req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+            using var resp = await _http.SendAsync(req, cts.Token).ConfigureAwait(false);
+            if (!resp.IsSuccessStatusCode)
+                throw MapHttpError((int)resp.StatusCode);
+
+            var text = await resp.Content.ReadAsStringAsync(cts.Token).ConfigureAwait(false);
+            using var doc = JsonDocument.Parse(text);
+            var models = new List<string>();
+            if (doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var item in data.EnumerateArray())
+                    if (item.TryGetProperty("id", out var id) && id.ValueKind == JsonValueKind.String)
+                        models.Add(id.GetString() ?? "");
+            }
+            return models.Where(m => m.Length > 0).Distinct().ToList();
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            throw new AiApiException("获取模型列表超时，请稍后重试。");
+        }
+        catch (HttpRequestException)
+        {
+            throw new AiApiException("网络连接失败，请检查网络或 API 地址。");
+        }
+        catch (AiApiException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            throw new AiApiException("模型列表返回格式无法解析。");
+        }
+    }
 
     private static string ExtractContent(string responseText)
     {

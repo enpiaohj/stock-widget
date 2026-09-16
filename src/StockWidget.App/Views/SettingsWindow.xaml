@@ -234,13 +234,30 @@
                                     <TextBlock Text="API Base URL" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
                                     <TextBox x:Name="AiBaseUrlBox" Grid.Column="1" Margin="0,2" />
                                     <TextBlock Grid.Row="1" Text="API Key" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
-                                    <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
-                                        <PasswordBox x:Name="AiKeyBox" Width="220" PasswordChanged="AiKeyBox_PasswordChanged" />
-                                        <Button Content="清空" Width="56" Margin="6,0,0,0" Click="AiKeyClear_Click"
+                                    <Grid Grid.Row="1" Grid.Column="1" Margin="0,2">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <Grid>
+                                            <PasswordBox x:Name="AiKeyBox" Background="{DynamicResource ControlBgBrush}"
+                                                         Foreground="{DynamicResource FgBrush}"
+                                                         BorderBrush="{DynamicResource ControlBorderBrush}"
+                                                         Padding="4,3" PasswordChanged="AiKeyBox_PasswordChanged" />
+                                            <TextBox x:Name="AiKeyTextBox" Visibility="Collapsed"
+                                                     Background="{DynamicResource ControlBgBrush}"
+                                                     Foreground="{DynamicResource FgBrush}"
+                                                     BorderBrush="{DynamicResource ControlBorderBrush}"
+                                                     Padding="4,3" TextChanged="AiKeyTextBox_TextChanged" />
+                                        </Grid>
+                                        <Button x:Name="AiKeyEyeButton" Content="👁" Width="56" Grid.Column="1" Margin="6,0,0,0"
+                                                Click="AiKeyEye_Click" ToolTip="显示 / 隐藏 API Key（检查空格）" />
+                                        <Button Content="清空" Width="56" Grid.Column="2" Margin="6,0,0,0" Click="AiKeyClear_Click"
                                                 ToolTip="清除已保存的 API Key" />
-                                    </StackPanel>
+                                    </Grid>
                                     <TextBlock Grid.Row="2" Text="Model" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
-                                    <TextBox x:Name="AiModelBox" Grid.Row="2" Grid.Column="1" Margin="0,2" />
+                                    <ComboBox x:Name="AiModelBox" Grid.Row="2" Grid.Column="1" IsEditable="True" Margin="0,2" />
                                     <TextBlock Grid.Row="3" Text="Timeout（秒）" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
                                     <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Margin="0,2">
                                         <views:SpinnerBox x:Name="AiTimeoutBox" Width="104" Min="5" Max="300" />
@@ -248,7 +265,9 @@
                                                    FontSize="11" Foreground="{DynamicResource SubFgBrush}" />
                                     </StackPanel>
                                     <StackPanel Grid.Row="4" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,8,0,0">
-                                        <Button x:Name="AiTestButton" Content="测试连接" Width="90" Click="AiTest_Click" />
+                                        <Button x:Name="AiFetchModelsButton" Content="获取模型" Width="90" Click="AiFetchModels_Click"
+                                                ToolTip="用 Base URL + API Key 拉取可用模型列表" />
+                                        <Button x:Name="AiTestButton" Content="测试连接" Width="90" Margin="8,0,0,0" Click="AiTest_Click" />
                                         <TextBlock x:Name="AiStatusText" VerticalAlignment="Center" Margin="10,0,0,0"
                                                    FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource SubFgBrush}" />
                                     </StackPanel>

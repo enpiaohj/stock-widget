@@ -72,7 +72,7 @@ public class SettingsServiceFallbackTests : DatabaseTestBase
         var ai = svc.Current.Ai;
         Assert.True(ai.Enabled);
         Assert.Equal("https://api.deepseek.com", ai.BaseUrl);
-        Assert.Equal("deepseek-chat", ai.Model);
+        Assert.Equal("deepseek-flash", ai.Model);
         Assert.Equal(60, ai.TimeoutSeconds);
         Assert.Equal("", ai.ApiKeyEncrypted);
     }

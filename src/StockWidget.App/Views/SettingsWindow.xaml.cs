@@ -29,6 +29,7 @@ public partial class SettingsWindow : GlassWindow
     // AI Key 状态机：未输入新 Key 时保留原密文；点击"清空"才明确删除
     private bool _aiKeyModified;
     private bool _aiKeyCleared;
+    private bool _aiKeyRevealed;
     private readonly string? _initialSection;
 
     /// <summary>设置是否被保存 / 应用过（窗口侧据此刷新菜单等）。</summary>
@@ -625,8 +626,8 @@ public partial class SettingsWindow : GlassWindow
             TimeoutSeconds = aiTimeout,
             ApiKeyEncrypted = _aiKeyCleared
                 ? ""
-                : _aiKeyModified && AiKeyBox.Password.Length > 0
-                    ? AiCredentialProtector.Protect(AiKeyBox.Password)
+                : _aiKeyModified && CurrentKeyInput().Length > 0
+                    ? AiCredentialProtector.Protect(CurrentKeyInput())
                     : _working.Ai.ApiKeyEncrypted,
         };
 
@@ -675,7 +676,7 @@ public partial class SettingsWindow : GlassWindow
     /// <summary>刷新 Key 状态提示（不显示明文/完整密钥）。</summary>
     private void RefreshAiKeyState()
     {
-        var configured = _aiKeyModified && AiKeyBox.Password.Length > 0;
+        var configured = _aiKeyModified && CurrentKeyInput().Length > 0;
         if (_aiKeyCleared)
             AiStatusText.Text = "API Key 已清除，保存后生效";
         else if (configured)
@@ -692,9 +693,78 @@ public partial class SettingsWindow : GlassWindow
         RefreshAiKeyState();
     }
 
+    private void AiKeyTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_aiKeyRevealed)
+        {
+            _aiKeyModified = true;
+            RefreshAiKeyState();
+        }
+    }
+
+    /// <summary>眼睛切换：明文查看 API Key（检查是否误输入空格等）。</summary>
+    private void AiKeyEye_Click(object sender, RoutedEventArgs e)
+    {
+        _aiKeyRevealed = !_aiKeyRevealed;
+        if (_aiKeyRevealed)
+        {
+            AiKeyTextBox.Text = AiKeyBox.Password;
+            AiKeyBox.Visibility = Visibility.Collapsed;
+            AiKeyTextBox.Visibility = Visibility.Visible;
+        }
+        else
+        {
+            AiKeyBox.Password = AiKeyTextBox.Text;
+            AiKeyTextBox.Visibility = Visibility.Collapsed;
+            AiKeyBox.Visibility = Visibility.Visible;
+        }
+    }
+
+    /// <summary>当前 Key 输入（眼睛明文态取 TextBox，否则取 PasswordBox）。</summary>
+    private string CurrentKeyInput() => _aiKeyRevealed ? AiKeyTextBox.Text : AiKeyBox.Password;
+
+    /// <summary>拉取可用模型列表填充下拉框。</summary>
+    private async void AiFetchModels_Click(object sender, RoutedEventArgs e)
+    {
+        var baseUrl = AiBaseUrlBox.Text.Trim();
+        var key = _aiKeyModified && CurrentKeyInput().Length > 0
+            ? CurrentKeyInput()
+            : _aiKeyCleared ? "" : AiCredentialProtector.Unprotect(_working.Ai.ApiKeyEncrypted);
+
+        if (string.IsNullOrWhiteSpace(baseUrl)) { AiStatusText.Text = "✗ 请先填写 API Base URL"; return; }
+        if (string.IsNullOrWhiteSpace(key)) { AiStatusText.Text = "✗ 请先填写 API Key"; return; }
+
+        AiFetchModelsButton.IsEnabled = false;
+        AiStatusText.Text = "正在获取模型...";
+        try
+        {
+            int.TryParse(AiTimeoutBox.Text, out var timeout);
+            if (timeout is < 5 or > 300) timeout = 60;
+            using var client = new DeepSeekAiClient();
+            var models = await client.GetModelsAsync(baseUrl, key, timeout, CancellationToken.None);
+            AiModelBox.ItemsSource = models;
+            AiStatusText.Text = models.Count > 0
+                ? $"✓ 获取到 {models.Count} 个模型，可下拉选择"
+                : "✗ 服务未返回任何模型";
+        }
+        catch (AiApiException ex)
+        {
+            AiStatusText.Text = $"✗ {ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            AiStatusText.Text = $"✗ 获取失败：{ex.Message}";
+        }
+        finally
+        {
+            AiFetchModelsButton.IsEnabled = true;
+        }
+    }
+
     private void AiKeyClear_Click(object sender, RoutedEventArgs e)
     {
         AiKeyBox.Clear();
+        AiKeyTextBox.Clear();
         _aiKeyModified = false;
         _aiKeyCleared = true;
         RefreshAiKeyState();
@@ -705,8 +775,8 @@ public partial class SettingsWindow : GlassWindow
     {
         var baseUrl = AiBaseUrlBox.Text.Trim();
         var model = AiModelBox.Text.Trim();
-        var key = _aiKeyModified && AiKeyBox.Password.Length > 0
-            ? AiKeyBox.Password
+        var key = _aiKeyModified && CurrentKeyInput().Length > 0
+            ? CurrentKeyInput()
             : _aiKeyCleared ? "" : AiCredentialProtector.Unprotect(_working.Ai.ApiKeyEncrypted);
 
         if (string.IsNullOrWhiteSpace(baseUrl)) { AiStatusText.Text = "✗ 请先填写 API Base URL"; return; }

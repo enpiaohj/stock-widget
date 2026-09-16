@@ -21,6 +21,9 @@ public class DeepSeekAiAnalysisServiceTests : DatabaseTestBase
             return Task.FromResult(content);
         }
 
+        public Task<List<string>> GetModelsAsync(string baseUrl, string apiKey, int timeoutSeconds, CancellationToken ct = default)
+            => Task.FromResult(new List<string>());
+
         public void Dispose() { }
     }
 

@@ -5,6 +5,19 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-09-16
+
+### Added
+
+- 设置 → AI 分析新增「获取模型」：用填写的 Base URL + API Key 拉取可用模型列表（`/models`），填入可编辑下拉框供选择，仍可手输任意模型名
+- API Key 输入框新增 👁 显示/隐藏切换（可查看确认是否误输入空格），输入框改深色主题样式
+- 默认占位模型名调整为 `deepseek-flash`
+
+### Changed
+
+- AI 分析设置布局对齐：「API Base URL」「Model」「API Key + 👁 + 清空」三行内容等宽；「获取模型」与「测试连接」同行
+- ComboBox 控件模板支持可编辑模式，新增 PasswordBox 深色主题样式（与 TextBox 视觉一致）
+
 ## [0.3.0] - 2026-09-16
 
 ### Added

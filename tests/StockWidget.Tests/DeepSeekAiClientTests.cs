@@ -138,6 +138,44 @@ public class DeepSeekAiClientTests
     }
 
     [Fact]
+    public async Task GetModels_ReturnsIds()
+    {
+        var handler = new FakeHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(
+                """{"data":[{"id":"deepseek-flash"},{"id":"deepseek-chat"},{"id":"deepseek-reasoner"}]}""",
+                Encoding.UTF8, "application/json"),
+        }));
+
+        var models = await MakeClient(handler).GetModelsAsync("https://api.deepseek.com", "sk-key", 60, CancellationToken.None);
+
+        Assert.Equal(3, models.Count);
+        Assert.Contains("deepseek-flash", models);
+    }
+
+    [Fact]
+    public async Task GetModels_EmptyData_ReturnsEmpty()
+    {
+        var handler = new FakeHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{"data":[]}""", Encoding.UTF8, "application/json"),
+        }));
+
+        var models = await MakeClient(handler).GetModelsAsync("https://api.deepseek.com", "sk-key", 60, CancellationToken.None);
+        Assert.Empty(models);
+    }
+
+    [Fact]
+    public async Task GetModels_HttpError_MapsToFriendlyMessage()
+    {
+        var handler = new FakeHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized)));
+        var ex = await Assert.ThrowsAsync<AiApiException>(() =>
+            MakeClient(handler).GetModelsAsync("https://api.deepseek.com", "bad", 60, CancellationToken.None));
+
+        Assert.Contains("API Key 无效或无权限", ex.Message);
+    }
+
+    [Fact]
     public async Task ErrorBody_DoesNotLeakApiKey()
     {
         var handler = new FakeHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.Unauthorized)));

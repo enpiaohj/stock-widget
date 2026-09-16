@@ -112,6 +112,34 @@
         </Setter>
     </Style>
 
+    <!-- 密码框：与 TextBox 同视觉 -->
+    <Style TargetType="PasswordBox">
+        <Setter Property="Background" Value="{DynamicResource ControlBgBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlBorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="8,5" />
+        <Setter Property="CaretBrush" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource AccentBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="PasswordBox">
+                    <Border x:Name="bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource AccentBrush}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- 复选框 -->
     <Style TargetType="CheckBox">
         <Setter Property="Foreground" Value="{DynamicResource FgBrush}" />
@@ -203,7 +231,12 @@
                                 </ControlTemplate>
                             </ToggleButton.Template>
                         </ToggleButton>
-                        <ContentPresenter IsHitTestVisible="False"
+                        <!-- 可编辑模式的文本宿主（AI 分析"获取模型"后仍可手输模型名） -->
+                        <TextBox x:Name="PART_EditableTextBox" Visibility="Hidden"
+                                 Background="Transparent" BorderThickness="0" Focusable="True"
+                                 Foreground="{DynamicResource FgBrush}" CaretBrush="{DynamicResource AccentBrush}"
+                                 Margin="10,0,26,0" VerticalAlignment="Center" />
+                        <ContentPresenter x:Name="selectionHost" IsHitTestVisible="False"
                                           Content="{TemplateBinding SelectionBoxItem}"
                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                                           Margin="12,0,26,0" VerticalAlignment="Center" />
@@ -218,6 +251,12 @@
                             </Border>
                         </Popup>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter TargetName="PART_EditableTextBox" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="selectionHost" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

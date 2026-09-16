@@ -12,7 +12,7 @@ public sealed class AiSettings
     public string BaseUrl { get; set; } = "https://api.deepseek.com";
 
     /// <summary>模型名（用户可改，不硬绑具体模型）。</summary>
-    public string Model { get; set; } = "deepseek-chat";
+    public string Model { get; set; } = "deepseek-flash";
 
     public int TimeoutSeconds { get; set; } = 60;
 
