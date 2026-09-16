@@ -586,18 +586,9 @@ public partial class MainViewModel : ObservableObject
             _cfg.SortDescending = false;
             _settingsService.Save(_cfg);
         }
-        // 视图切回"集合顺序"模式，并按新顺序物理移动行——立即生效，不依赖 CustomSort 刷新时机
-        if (RowsView is ListCollectionView lcv)
-            lcv.CustomSort = null;
-        for (var i = 0; i < _watchlist.Count && i < Rows.Count; i++)
-        {
-            var rowVm = Rows.FirstOrDefault(r => r.Code == _watchlist[i].Code);
-            if (rowVm is not null)
-            {
-                var cur = Rows.IndexOf(rowVm);
-                if (cur != i) Rows.Move(cur, i);
-            }
-        }
+        // 在当前排序模式（分类聚集/手动）内重排视图：行 VM 已持最新 SortOrder，
+        // 重新赋 CustomSort 触发即时重排——不清排序，避免两种顺序观切换的跳变
+        ApplyViewStructure();
         return true;
     }
 

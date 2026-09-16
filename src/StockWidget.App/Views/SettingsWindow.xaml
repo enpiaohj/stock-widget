@@ -55,7 +55,7 @@
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="110" />
                                         <ColumnDefinition Width="180" />
-                                        <ColumnDefinition Width="104" />
+                                        <ColumnDefinition Width="118" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Text="字体" VerticalAlignment="Center" Foreground="{DynamicResource FgBrush}" />
