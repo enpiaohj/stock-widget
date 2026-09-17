@@ -5,6 +5,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 仓库可见性 Private → Public（GPL-3.0 开源发布），公开前完成 Secret / 敏感文件全历史审计并补齐 LICENSE 与遗漏源文件
+
 ## [0.3.1] - 2026-09-16
 
 ### Added

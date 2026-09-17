@@ -12,7 +12,7 @@
 
 - Product Name：股票小插件（StockWidget）
 - Repository：stock-widget
-- Visibility：Private
+- Visibility：Public（GPL-3.0）
 - Default Branch：main
 - Version：Semantic Versioning
 - Tag：vMAJOR.MINOR.PATCH
