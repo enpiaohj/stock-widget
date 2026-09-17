@@ -1,6 +1,6 @@
 # 股票小插件 (StockWidget)
 
-Windows 桌面股票行情悬浮窗小工具。C# / WPF (.NET 10) 全新重写版，前身是 Python/PySide6 单文件版本（`D:\AIProjects\stockTool`）。
+Windows 桌面股票行情悬浮窗小工具。C# / WPF (.NET 10) 全新重写版，前身是 Python/PySide6 单文件版本（旧版项目 stockTool）。
 
 ## 产品简介
 
@@ -33,6 +33,10 @@ AI 分析仅用于行情数据解释，不构成投资建议。
 ## 当前版本
 
 v0.3.1（AI Analysis）
+
+## 许可证
+
+本项目基于 [GPL-3.0](LICENSE) 发布。
 
 ## 系统要求
 

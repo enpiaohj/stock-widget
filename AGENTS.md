@@ -2,7 +2,7 @@
 
 ## 项目说明
 
-- C# / WPF (.NET 10) 桌面股票行情悬浮窗，从 Python/PySide6 旧版（`D:\AIProjects\stockTool`，最终版 v1.0.3.10）重写。
+- C# / WPF (.NET 10) 桌面股票行情悬浮窗，从 Python/PySide6 旧版项目 stockTool（最终版 v1.0.3.10）重写。
 - 需求基线：旧版全部功能 + 桌面体验包 / 表格增强包 / 分时迷你走势图增强 + 本地 SQLite 数据库存储。
 - 数据源：腾讯行情 `qt.gtimg.cn`（GBK 编码）；分时：`web.ifzq.gtimg.cn` 分时接口；历史日K：`web.ifzq.gtimg.cn` fqkline（前复权）；AI 分析：DeepSeek（OpenAI 兼容协议，Base URL / Model 可配置）。
 - UI：无边框悬浮窗，深色 / 浅色 / 跟随系统三态主题，现代玻璃拟态风格。
