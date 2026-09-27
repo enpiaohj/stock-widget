@@ -353,17 +353,10 @@ public partial class MainViewModel : ObservableObject
         try
         {
             // 休市（节假日/周末/非交易日）：跳过抓取，临时拉长到探测间隔，恢复后切回配置间隔
-            if (IsMarketClosed(DateTime.Now))
-            {
-                await _dispatcher.InvokeAsync(() =>
-                {
-                    MarketClosed = true;
-                    UpdateStatusText();
-                    if (_refreshTimer.Interval != MarketProbeInterval)
-                        _refreshTimer.Interval = MarketProbeInterval;
-                });
-                return;
-            }
+            // 休市日不跳过抓取：腾讯休市日返回最后交易日完整收盘数据，
+            // 低频（探测间隔）抓取保证休市日打开应用也能看到最近行情；进入交易日自动恢复配置间隔
+            MarketClosed = IsMarketClosed(DateTime.Now);
+
             var prev = Rows.Select(r => r.Current).ToList();
             var result = await Task.Run(async () => await _refreshService
                 .RefreshAsync(_watchlist, prev)
@@ -380,10 +373,12 @@ public partial class MainViewModel : ObservableObject
                 }
 
                 MarketClosed = IsMarketClosed(DateTime.Now);
-                // 进入交易日：恢复配置的刷新间隔
-                var cfgInterval = TimeSpan.FromMilliseconds(_cfg.RefreshIntervalMs);
-                if (_refreshTimer.Interval != cfgInterval)
-                    _refreshTimer.Interval = cfgInterval;
+                // 休市用探测间隔（低频），交易日恢复配置的刷新间隔
+                var intervalAfterSuccess = MarketClosed
+                    ? MarketProbeInterval
+                    : TimeSpan.FromMilliseconds(_cfg.RefreshIntervalMs);
+                if (_refreshTimer.Interval != intervalAfterSuccess)
+                    _refreshTimer.Interval = intervalAfterSuccess;
                 UpdateAmountBar(result);
                 // 大盘涨跌 → 托盘色点（仅在自选含上证指数时更新；失败保留旧值不闪烁）
                 var mood = result.Quotes.FirstOrDefault(q =>
@@ -421,8 +416,10 @@ public partial class MainViewModel : ObservableObject
             {
                 MarketClosed = IsMarketClosed(DateTime.Now);
                 UpdateStatusText();
-                // 与成功分支一致：进入交易日即恢复配置刷新间隔（即便本轮抓取失败）
-                var cfgInt = TimeSpan.FromMilliseconds(_cfg.RefreshIntervalMs);
+                // 与成功分支一致：休市低频探测，交易日恢复配置刷新间隔（即便本轮抓取失败）
+                var cfgInt = MarketClosed
+                    ? MarketProbeInterval
+                    : TimeSpan.FromMilliseconds(_cfg.RefreshIntervalMs);
                 if (_refreshTimer.Interval != cfgInt)
                     _refreshTimer.Interval = cfgInt;
             });
