@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/StockWidget.App/StockWidget.App.csproj" />
+    <Project Path="src/StockWidget.Core/StockWidget.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/StockWidget.Tests/StockWidget.Tests.csproj" />
+  </Folder>
+</Solution>

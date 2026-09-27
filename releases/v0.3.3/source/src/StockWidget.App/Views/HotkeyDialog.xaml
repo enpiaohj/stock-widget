@@ -1,0 +1,26 @@
+<Window x:Class="StockWidget.App.Views.HotkeyDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="修改快捷键"
+        Width="400" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize" ShowInTaskbar="False"
+        WindowStyle="ToolWindow"
+        Background="{DynamicResource BgBrush}"
+        PreviewKeyDown="Window_PreviewKeyDown">
+    <StackPanel Margin="16">
+        <Border Style="{StaticResource CardStyle}">
+            <StackPanel>
+                <TextBlock Text="快捷键设置" Style="{StaticResource CardHeaderText}" />
+                <TextBox x:Name="HotkeyBox" />
+                <TextBlock Text="点击输入框后直接按下组合键即可录入；格式如 ctrl+q、alt+z、ctrl+shift+f5。"
+                           Foreground="{DynamicResource SubFgBrush}" FontSize="11"
+                           TextWrapping="Wrap" Margin="0,8,0,0" />
+            </StackPanel>
+        </Border>
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,6,0,0">
+            <Button Content="保存" Width="84" Style="{StaticResource PrimaryButtonStyle}" Click="Save_Click" />
+            <Button Content="取消" Width="84" Margin="10,0,0,0" Click="Cancel_Click" />
+        </StackPanel>
+    </StackPanel>
+</Window>
